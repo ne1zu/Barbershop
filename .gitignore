@@ -361,3 +361,20 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+# 1. Мусор от компиляции и кэш
+.vs/
+out/
+build/
+bin/
+obj/
+*.exe
+*.dll
+*.pdb
+*.ilk
+
+# 2. Файлы проекта Visual Studio и настройки гита
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+.gitattributes
