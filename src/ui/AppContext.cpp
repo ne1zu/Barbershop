@@ -1,10 +1,6 @@
 #include "AppContext.h"
-#include <QDialog>
-#include <QFrame>
-#include <QHBoxLayout>
-#include <QLabel>
+#include <QMessageBox>
 #include <QPushButton>
-#include <QVBoxLayout>
 #include "UiUtils.h"
 #include "exceptions/exceptions.h"
 
@@ -43,99 +39,12 @@ QString AppContext::roleTitle() const {
 }
 
 namespace {
-    enum class PopupKind { Info, Warning, Error, Question };
-
-    QLabel* makePopupIcon(PopupKind kind) {
-        QString symbol = QString::fromUtf8("✓");
-        QString style = "background: #142a21; color: #46c28e; border: 1px solid #1f4634; "
-            "border-radius: 18px; font-size: 16px; font-weight: 700;";
-
-        if (kind == PopupKind::Warning) {
-            symbol = "!";
-            style = "background: #2e2716; color: #e0b44c; border: 1px solid #4a3b1c; "
-                "border-radius: 18px; font-size: 17px; font-weight: 700;";
-        }
-        else if (kind == PopupKind::Error) {
-            symbol = QString::fromUtf8("✕");
-            style = "background: #3a1a1d; color: #ef6b70; border: 1px solid #5c282d; "
-                "border-radius: 18px; font-size: 15px; font-weight: 700;";
-        }
-        else if (kind == PopupKind::Question) {
-            symbol = "?";
-            style = "background: #33281a; color: #e6c9a2; border: 1px solid #4d3c25; "
-                "border-radius: 18px; font-size: 16px; font-weight: 700;";
-        }
-
-        QLabel* badge = new QLabel(symbol);
-        badge->setFixedSize(36, 36);
-        badge->setAlignment(Qt::AlignCenter);
-        badge->setStyleSheet(style);
-        return badge;
-    }
-
-    bool showStyledPopup(QWidget* parent, PopupKind kind, const QString& title, const QString& text,
-        const QString& okText, bool withCancel) {
-        QDialog dialog(parent);
-        dialog.setWindowTitle(title);
-        dialog.setWindowFlags(dialog.windowFlags() & ~Qt::WindowContextHelpButtonHint);
-        dialog.setMinimumWidth(400);
-        dialog.setMaximumWidth(520);
-
-        QVBoxLayout* root = new QVBoxLayout(&dialog);
-        root->setContentsMargins(24, 22, 24, 20);
-        root->setSpacing(16);
-
-        QHBoxLayout* header = new QHBoxLayout;
-        header->setSpacing(12);
-        header->addWidget(makePopupIcon(kind));
-        QLabel* heading = makeLabel(title);
-        heading->setStyleSheet("font-size: 16px; font-weight: 700; color: #f1f1f1;");
-        heading->setWordWrap(true);
-        header->addWidget(heading, 1);
-        root->addLayout(header);
-
-        QFrame* card = makeCard();
-        QVBoxLayout* cardLayout = new QVBoxLayout(card);
-        cardLayout->setContentsMargins(16, 14, 16, 14);
-        QLabel* body = makeLabel(text);
-        body->setWordWrap(true);
-        body->setStyleSheet("color: #e4e4e7; font-size: 13px;");
-        body->setTextInteractionFlags(Qt::TextSelectableByMouse);
-        cardLayout->addWidget(body);
-        root->addWidget(card);
-
-        QHBoxLayout* buttons = new QHBoxLayout;
-        buttons->setSpacing(10);
-        buttons->addStretch(1);
-
-        if (withCancel) {
-            QPushButton* cancelButton = makeButton(QString::fromUtf8("Отмена"), "ghost");
-            cancelButton->setMinimumWidth(100);
-            buttons->addWidget(cancelButton);
-            QObject::connect(cancelButton, &QPushButton::clicked, &dialog, &QDialog::reject);
-        }
-
-        QString acceptKind = "primary";
-        if (withCancel && (okText.contains(QString::fromUtf8("Удал"))
-            || okText.contains(QString::fromUtf8("Отмен")))) {
-            acceptKind = "danger";
-        }
-        QPushButton* okButton = makeButton(okText, acceptKind);
-        okButton->setMinimumWidth(110);
-        okButton->setDefault(true);
-        buttons->addWidget(okButton);
-        QObject::connect(okButton, &QPushButton::clicked, &dialog, &QDialog::accept);
-
-        root->addLayout(buttons);
-        return dialog.exec() == QDialog::Accepted;
-    }
-
     void warn(QWidget* parent, const QString& title, const QString& text) {
-        showStyledPopup(parent, PopupKind::Warning, title, text, QString::fromUtf8("Понятно"), false);
+        QMessageBox::warning(parent, title, text);
     }
 
     void critical(QWidget* parent, const QString& title, const QString& text) {
-        showStyledPopup(parent, PopupKind::Error, title, text, QString::fromUtf8("Понятно"), false);
+        QMessageBox::critical(parent, title, text);
     }
 }
 
@@ -213,10 +122,16 @@ void showError(QWidget* parent, const Barbershop& shop) {
 }
 
 void showInfo(QWidget* parent, const QString& title, const QString& text) {
-    showStyledPopup(parent, PopupKind::Info, title, text, QString::fromUtf8("Готово"), false);
+    QMessageBox::information(parent, title, text);
 }
 
 bool askConfirm(QWidget* parent, const QString& title, const QString& text, const QString& yesText) {
-    QString okLabel = yesText.isEmpty() ? QString::fromUtf8("Да") : yesText;
-    return showStyledPopup(parent, PopupKind::Question, title, text, okLabel, true);
+    QMessageBox box(QMessageBox::Question, title, text, QMessageBox::NoButton, parent);
+    QPushButton* yes = box.addButton(yesText.isEmpty() ? QString::fromUtf8("Да") : yesText,
+        QMessageBox::AcceptRole);
+    QPushButton* no = box.addButton(QString::fromUtf8("Нет, отмена"), QMessageBox::RejectRole);
+    box.setDefaultButton(no);
+    box.setEscapeButton(no);
+    box.exec();
+    return box.clickedButton() == yes;
 }

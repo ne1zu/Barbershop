@@ -28,9 +28,14 @@ private:
     std::vector<int> masterIds;
     std::vector<Block> blocks;
     QScrollBar* bar;
+    QScrollBar* hbar;
     QTimer* timer;
 
     int contentHeight() const;
+    int contentWidth() const;
+    int viewportHeight() const;
+    int viewportWidth() const;
+    void placeBars();
     int yOf(int minute) const;
     int columnX(int column) const;
     int columnAt(int x) const;

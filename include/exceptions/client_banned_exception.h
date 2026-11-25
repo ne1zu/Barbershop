@@ -8,8 +8,8 @@ private:
 
 public:
     explicit ClientBannedException(const std::string& clientNameValue)
-        : BarbershopException("Client '" + clientNameValue
-            + "' cannot be booked. Please contact the barbershop administrator."),
+        : BarbershopException("Клиент «" + clientNameValue
+            + "» заблокирован и не может записываться. Обратитесь к администратору барбершопа."),
         clientName(clientNameValue) {}
 
     const std::string& getClientName() const { return clientName; }

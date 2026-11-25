@@ -5,5 +5,5 @@
 class DuplicateObjectException : public BarbershopException {
 public:
     DuplicateObjectException(const std::string& objectType, const std::string& key)
-        : BarbershopException(objectType + " '" + key + "' already exists.") {}
+        : BarbershopException("Уже существует: " + objectType + " «" + key + "».") {}
 };

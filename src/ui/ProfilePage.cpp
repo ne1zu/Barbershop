@@ -74,6 +74,7 @@ ProfilePage::ProfilePage(AppContext* contextValue, QWidget* parent) : PageBase(c
     history = makeTable({ QString::fromUtf8("Дата"), QString::fromUtf8("Время"), QString::fromUtf8("Мастер"),
         QString::fromUtf8("Услуга"), QString::fromUtf8("Цена"), QString::fromUtf8("Статус") });
     history->setSelectionMode(QAbstractItemView::NoSelection);
+    fixColumn(history, 5, 150);
     root->addWidget(history);
     root->addStretch(1);
 }
@@ -135,7 +136,7 @@ void ProfilePage::refresh() {
         int row = history->rowCount();
         history->insertRow(row);
         history->setItem(row, 0, makeItem(formatDay(appointment->getStart())));
-        history->setItem(row, 1, makeItem(qs(appointment->getTimeRange())));
+        history->setItem(row, 1, makeItem(timeRangeText(*appointment)));
         history->setItem(row, 2, makeItem(qs(appointment->getMaster()->getName())));
         history->setItem(row, 3, makeItem(qs(appointment->getService()->getName())));
         history->setItem(row, 4, makeItem(money(appointment->getPrice())));

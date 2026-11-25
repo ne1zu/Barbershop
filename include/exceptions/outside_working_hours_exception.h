@@ -5,5 +5,5 @@
 class OutsideWorkingHoursException : public BarbershopException {
 public:
     OutsideWorkingHoursException(const std::string& masterName, const std::string& timeText)
-        : BarbershopException("Master '" + masterName + "' does not work at this time (" + timeText + ").") {}
+        : BarbershopException("Мастер «" + masterName + "» не работает в это время (" + timeText + ").") {}
 };

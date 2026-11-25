@@ -56,9 +56,25 @@ private:
     QLineEdit* nameEdit;
     QDoubleSpinBox* priceSpin;
     QSpinBox* lengthSpin;
+    std::shared_ptr<Service> editing;
+
+    void buildFields(const QString& title, const QString& hint, const QString& okText);
 
 public:
     ServiceDialog(Barbershop& shopValue, QWidget* parent);
+    ServiceDialog(Barbershop& shopValue, const std::shared_ptr<Service>& existing, QWidget* parent);
+    void accept() override;
+};
+
+class MasterProfileDialog : public QDialog {
+private:
+    Barbershop& shop;
+    std::shared_ptr<Master> master;
+    QSpinBox* experienceSpin;
+    QDoubleSpinBox* ratingSpin;
+
+public:
+    MasterProfileDialog(Barbershop& shopValue, const std::shared_ptr<Master>& masterValue, QWidget* parent);
     void accept() override;
 };
 

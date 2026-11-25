@@ -1,9 +1,12 @@
 #pragma once
 #include "PageBase.h"
 
+class QAction;
+class QComboBox;
 class QLabel;
 class QLineEdit;
 class QListWidget;
+class QMenu;
 class QPushButton;
 class QTableWidget;
 class QVBoxLayout;
@@ -28,24 +31,33 @@ private:
     QLabel* cancelValue;
     QLabel* discountValue;
     QLabel* banInfo;
-    QVBoxLayout* notesLayout;
+    QLabel* countLabel;
+    QLabel* notesTitle;
+    QComboBox* filterCombo;
+    QListWidget* notesList;
+    QVBoxLayout* loyaltyLayout;
     QLineEdit* noteEdit;
-    QPushButton* banButton;
-    QPushButton* unbanButton;
+    QPushButton* actionsButton;
+    QAction* banAction;
+    QAction* unbanAction;
+    QAction* visitsAction;
     QTableWidget* history;
     bool loading;
 
     std::shared_ptr<Client> selected() const;
     void fillList();
     void showDetails();
+    void fillLoyalty(const Client& client);
 
 private slots:
     void onSearchChanged();
+    void onFilterChanged();
     void onSelectionChanged();
     void onNewClient();
     void onAddNote();
     void onBan();
     void onUnban();
+    void onEditVisits();
     void onBook();
 
 public:

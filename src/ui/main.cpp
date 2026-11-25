@@ -9,6 +9,7 @@
 #include "LoginDialog.h"
 #include "MainWindow.h"
 #include "Styles.h"
+#include "UiUtils.h"
 #include "barbershop.h"
 #include "config.h"
 #include "data_storage.h"
@@ -79,7 +80,7 @@ int main(int argc, char* argv[]) {
     app.setPalette(Style::darkPalette());
     app.setStyleSheet(Style::sheet());
 
-    Barbershop shop("Dolgih Barbershop", "Minsk, Gintovta 5");
+    Barbershop shop(ss(QString::fromUtf8("Барбершоп «Острое лезвие»")), ss(QString::fromUtf8("Минск, ул. Гинтовта, 5")));
     app.setShop(&shop);
 
     std::string startNote;

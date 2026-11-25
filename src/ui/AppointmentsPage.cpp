@@ -26,6 +26,7 @@ AppointmentsPage::AppointmentsPage(AppContext* contextValue, QWidget* parent)
     dateEdit->setCalendarPopup(true);
     dateEdit->setDisplayFormat("dd.MM.yyyy");
     dateEdit->setEnabled(false);
+    dateEdit->setMinimumWidth(150);
     masterCombo = new QComboBox;
     masterCombo->setMinimumWidth(220);
     filters->addWidget(modeCombo);
@@ -37,8 +38,12 @@ AppointmentsPage::AppointmentsPage(AppContext* contextValue, QWidget* parent)
     table = makeTable({ "№", QString::fromUtf8("Дата"), QString::fromUtf8("Время"), QString::fromUtf8("Клиент"),
         QString::fromUtf8("Мастер"), QString::fromUtf8("Услуга"), QString::fromUtf8("Цена"),
         QString::fromUtf8("Статус"), QString::fromUtf8("Оплата") });
-    table->setColumnWidth(0, 60);
-    table->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Fixed);
+    fixColumn(table, 0, 84);
+    fixColumn(table, 1, 124);
+    fixColumn(table, 2, 134);
+    fixColumn(table, 6, 118);
+    fixColumn(table, 7, 150);
+    fixColumn(table, 8, 130);
     root->addWidget(table, 1);
 
     QHBoxLayout* buttons = new QHBoxLayout;
@@ -122,7 +127,7 @@ void AppointmentsPage::fillTable() {
         number->setData(Qt::UserRole, appointment->getId());
         table->setItem(row, 0, number);
         table->setItem(row, 1, makeItem(formatDay(appointment->getStart())));
-        table->setItem(row, 2, makeItem(qs(appointment->getTimeRange())));
+        table->setItem(row, 2, makeItem(timeRangeText(*appointment)));
         table->setItem(row, 3, makeItem(qs(appointment->getClient()->getName())));
         table->setItem(row, 4, makeItem(qs(appointment->getMaster()->getName())));
         table->setItem(row, 5, makeItem(qs(appointment->getService()->getName())));
@@ -139,12 +144,12 @@ void AppointmentsPage::fillTable() {
 
 void AppointmentsPage::onSelectionChanged() {
     ActionState state = actions::stateFor(ctx(), selected());
-    confirmButton->setEnabled(state.confirm);
-    arrivedButton->setEnabled(state.arrived);
-    noShowButton->setEnabled(state.noShow);
-    rescheduleButton->setEnabled(state.reschedule);
-    cancelButton->setEnabled(state.cancel);
-    payButton->setEnabled(state.pay);
+    setActionEnabled(confirmButton, state.confirm, state.confirmHint);
+    setActionEnabled(arrivedButton, state.arrived, state.arrivedHint);
+    setActionEnabled(noShowButton, state.noShow, state.noShowHint);
+    setActionEnabled(rescheduleButton, state.reschedule, state.rescheduleHint);
+    setActionEnabled(cancelButton, state.cancel, state.cancelHint);
+    setActionEnabled(payButton, state.pay, state.payHint);
     removeButton->setEnabled(state.remove);
 }
 

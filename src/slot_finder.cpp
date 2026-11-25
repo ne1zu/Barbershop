@@ -87,7 +87,7 @@ std::vector<DateTime> findFreeStartTimes(const Barbershop& shop, const Master& m
 std::vector<SlotOption> suggestSlots(const Barbershop& shop, const SlotRequest& request) {
     if (!request.service) throw NullObjectException("suggestSlots", "service");
     if (request.days < 1 || request.days > MAX_SEARCH_DAYS) {
-        throw InvalidDataException("days", "must be 1-" + std::to_string(MAX_SEARCH_DAYS));
+        throw InvalidDataException("дни", "от 1 до " + std::to_string(MAX_SEARCH_DAYS));
     }
 
     Collection<Master> candidates;

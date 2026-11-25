@@ -22,8 +22,8 @@ Master::Master(int idValue, std::string_view nameValue, std::string_view phoneVa
     int dayOffValue)
     : Person(idValue, "", ""), experience(0), rating(0.0), workStart(DEFAULT_WORK_START),
     workEnd(DEFAULT_WORK_END), dayOff(DEFAULT_DAY_OFF) {
-    if (idValue <= 0) throw InvalidDataException("master id", "must be positive");
-    if (!isDigits(hash)) throw InvalidDataException("password hash", "is damaged");
+    if (idValue <= 0) throw InvalidDataException("номер мастера", "должно быть положительным");
+    if (!isDigits(hash)) throw InvalidDataException("хеш пароля", "повреждён");
     setName(nameValue);
     setPhone(phoneValue);
     setLogin(loginValue);
@@ -46,7 +46,7 @@ const Collection<MasterService>& Master::getOffers() const { return offers; }
 
 void Master::setLogin(std::string_view loginValue) {
     if (!isValidLogin(loginValue)) {
-        throw InvalidDataException("login", "3-20 characters: letters, digits or '_'");
+        throw InvalidDataException("логин", "3–20 символов: латинские буквы, цифры или «_»");
     }
     login = loginValue;
 }
@@ -57,24 +57,24 @@ void Master::setPassword(std::string_view password) {
 
 void Master::setExperience(int experienceValue) {
     if (experienceValue < 0) {
-        throw InvalidDataException("experience", "must not be negative, got " + std::to_string(experienceValue));
+        throw InvalidDataException("стаж", "не может быть отрицательным, указано " + std::to_string(experienceValue));
     }
     experience = experienceValue;
 }
 
 void Master::setRating(double ratingValue) {
     if (ratingValue < 0.0 || ratingValue > 5.0) {
-        throw InvalidDataException("rating", "must be between 0 and 5");
+        throw InvalidDataException("рейтинг", "от 0 до 5");
     }
     rating = ratingValue;
 }
 
 void Master::setWorkHours(int startMinute, int endMinute) {
     if (startMinute < 0 || endMinute > 24 * 60 || startMinute >= endMinute) {
-        throw InvalidDataException("work hours", "the start must be earlier than the end within one day");
+        throw InvalidDataException("рабочие часы", "начало должно быть раньше конца в пределах суток");
     }
     if (startMinute % GRID_STEP_MINUTES != 0 || endMinute % GRID_STEP_MINUTES != 0) {
-        throw InvalidDataException("work hours", "must be a multiple of " + std::to_string(GRID_STEP_MINUTES) + " minutes");
+        throw InvalidDataException("рабочие часы", "кратны " + std::to_string(GRID_STEP_MINUTES) + " мин.");
     }
     workStart = startMinute;
     workEnd = endMinute;
@@ -82,7 +82,7 @@ void Master::setWorkHours(int startMinute, int endMinute) {
 
 void Master::setDayOff(int dayValue) {
     if (dayValue < -1 || dayValue > 6) {
-        throw InvalidDataException("day off", "use -1 for none or 0 (Monday) .. 6 (Sunday)");
+        throw InvalidDataException("выходной", "-1 — нет, от 0 (понедельник) до 6 (воскресенье)");
     }
     dayOff = dayValue;
 }

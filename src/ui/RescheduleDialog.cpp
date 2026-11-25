@@ -98,7 +98,13 @@ void RescheduleDialog::accept() {
     try {
         int minute = timeCombo->currentData().toInt();
         if (minute < 0) return;
-        shop.reschedule(appointment, toDateTime(dateEdit->date(), minute), context->user());
+        DateTime target = toDateTime(dateEdit->date(), minute);
+        if (!askConfirm(this, QString::fromUtf8("Перенос записи"),
+            QString::fromUtf8("Вы точно хотите перенести запись на %1?").arg(formatDayTime(target)),
+            QString::fromUtf8("Да, перенести"))) {
+            return;
+        }
+        shop.reschedule(appointment, target, context->user());
         QDialog::accept();
     }
     catch (const TimeAlreadyBookedException&) {

@@ -217,6 +217,14 @@ void MasterSettingsPage::onSaveSchedule() {
     try {
         int start = startEdit->time().hour() * 60 + startEdit->time().minute();
         int end = endEdit->time().hour() * 60 + endEdit->time().minute();
+        if (!askConfirm(this, QString::fromUtf8("Изменение графика"),
+            QString::fromUtf8("Вы точно хотите изменить график мастера «%1»: %2–%3, выходной: %4?")
+                .arg(qs(master->getName()), formatClock(start), formatClock(end),
+                    dayOffText(dayOffCombo->currentData().toInt())),
+            QString::fromUtf8("Да, сохранить"))) {
+            fillSchedule();
+            return;
+        }
         shop().changeSchedule(master, start, end, dayOffCombo->currentData().toInt(), ctx()->user());
         showInfo(this, QString::fromUtf8("График сохранён"),
             QString::fromUtf8("%1: %2–%3, выходной: %4").arg(qs(master->getName()), formatClock(start),

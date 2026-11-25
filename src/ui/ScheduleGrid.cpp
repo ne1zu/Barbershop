@@ -14,7 +14,8 @@ namespace {
     const int HEADER_HEIGHT = 60;
     const int TIME_WIDTH = 64;
     const int ROW_HEIGHT = 24;
-    const int MIN_COLUMN_WIDTH = 130;
+    const int MIN_COLUMN_WIDTH = 190;
+    const int BAR_SIZE = 12;
 
     QColor statusColor(AppointmentStatus status) {
         switch (status) {
@@ -35,6 +36,8 @@ ScheduleGrid::ScheduleGrid(Barbershop& shopValue, QWidget* parent)
     setMouseTracking(false);
     bar = new QScrollBar(Qt::Vertical, this);
     connect(bar, &QScrollBar::valueChanged, this, &ScheduleGrid::onScroll);
+    hbar = new QScrollBar(Qt::Horizontal, this);
+    connect(hbar, &QScrollBar::valueChanged, this, &ScheduleGrid::onScroll);
     timer = new QTimer(this);
     timer->setInterval(60000);
     connect(timer, &QTimer::timeout, this, &ScheduleGrid::onTick);
@@ -47,6 +50,23 @@ void ScheduleGrid::onTick() { update(); }
 
 int ScheduleGrid::contentHeight() const {
     return (endMinute - startMinute) / GRID_STEP_MINUTES * ROW_HEIGHT + 12;
+}
+
+int ScheduleGrid::contentWidth() const {
+    return TIME_WIDTH + static_cast<int>(masterIds.size()) * columnWidthValue;
+}
+
+int ScheduleGrid::viewportWidth() const { return std::max(0, width() - BAR_SIZE); }
+
+int ScheduleGrid::viewportHeight() const {
+    return std::max(0, height() - HEADER_HEIGHT - (hbar->maximum() > 0 ? BAR_SIZE : 0));
+}
+
+void ScheduleGrid::placeBars() {
+    bool horizontal = hbar->maximum() > 0;
+    hbar->setVisible(horizontal);
+    bar->setGeometry(width() - BAR_SIZE, HEADER_HEIGHT, BAR_SIZE, viewportHeight());
+    hbar->setGeometry(TIME_WIDTH, height() - BAR_SIZE, std::max(0, width() - TIME_WIDTH - BAR_SIZE), BAR_SIZE);
 }
 
 int ScheduleGrid::yOf(int minute) const {
@@ -72,8 +92,10 @@ void ScheduleGrid::setDay(const DateTime& value) {
 
 void ScheduleGrid::reload() {
     int keep = bar->value();
+    int keepX = hbar->value();
     rebuild();
     bar->setValue(std::min(keep, bar->maximum()));
+    hbar->setValue(std::min(keepX, hbar->maximum()));
 }
 
 void ScheduleGrid::setShowCancelled(bool value) {
@@ -116,7 +138,12 @@ void ScheduleGrid::rebuild() {
 }
 
 void ScheduleGrid::updateScrollRange() {
-    int visible = std::max(0, height() - HEADER_HEIGHT);
+    int visibleWidth = std::max(0, viewportWidth() - TIME_WIDTH);
+    hbar->setRange(0, std::max(0, contentWidth() - TIME_WIDTH - visibleWidth));
+    hbar->setPageStep(visibleWidth);
+    hbar->setSingleStep(40);
+    placeBars();
+    int visible = viewportHeight();
     bar->setRange(0, std::max(0, contentHeight() - visible));
     bar->setPageStep(visible);
     bar->setSingleStep(ROW_HEIGHT);
@@ -134,7 +161,7 @@ void ScheduleGrid::scrollToDefault() {
 void ScheduleGrid::layoutBlocks() {
     blocks.clear();
     int count = std::max(1, static_cast<int>(masterIds.size()));
-    int available = width() - TIME_WIDTH - bar->width();
+    int available = width() - TIME_WIDTH - BAR_SIZE;
     columnWidthValue = std::max(MIN_COLUMN_WIDTH, available / count);
 
     for (int pass = 0; pass < 2; ++pass) {
@@ -164,21 +191,27 @@ void ScheduleGrid::layoutBlocks() {
 }
 
 void ScheduleGrid::resizeEvent(QResizeEvent*) {
-    bar->setGeometry(width() - 12, HEADER_HEIGHT, 12, std::max(0, height() - HEADER_HEIGHT));
-    updateScrollRange();
     layoutBlocks();
+    updateScrollRange();
 }
 
 void ScheduleGrid::wheelEvent(QWheelEvent* event) {
-    bar->setValue(bar->value() - event->angleDelta().y() / 2);
+    if (event->angleDelta().x() != 0 || (event->modifiers() & Qt::ShiftModifier)) {
+        int delta = event->angleDelta().x() != 0 ? event->angleDelta().x() : event->angleDelta().y();
+        hbar->setValue(hbar->value() - delta / 2);
+    }
+    else {
+        bar->setValue(bar->value() - event->angleDelta().y() / 2);
+    }
     event->accept();
 }
 
 void ScheduleGrid::mousePressEvent(QMouseEvent* event) {
     if (event->button() != Qt::LeftButton) return;
-    int x = static_cast<int>(event->position().x());
+    int screenX = static_cast<int>(event->position().x());
+    int x = screenX + hbar->value();
     int y = static_cast<int>(event->position().y());
-    if (y < HEADER_HEIGHT) return;
+    if (y < HEADER_HEIGHT || screenX < TIME_WIDTH) return;
     int contentY = y - HEADER_HEIGHT + bar->value();
     int found = -1;
     for (int i = static_cast<int>(blocks.size()) - 1; i >= 0; --i) {
@@ -194,9 +227,10 @@ void ScheduleGrid::mousePressEvent(QMouseEvent* event) {
 
 void ScheduleGrid::mouseDoubleClickEvent(QMouseEvent* event) {
     if (event->button() != Qt::LeftButton) return;
-    int x = static_cast<int>(event->position().x());
+    int screenX = static_cast<int>(event->position().x());
+    int x = screenX + hbar->value();
     int y = static_cast<int>(event->position().y());
-    if (y < HEADER_HEIGHT) return;
+    if (y < HEADER_HEIGHT || screenX < TIME_WIDTH) return;
     int contentY = y - HEADER_HEIGHT + bar->value();
     for (const Block& block : blocks) {
         if (block.rect.contains(x, contentY)) return;
@@ -217,18 +251,14 @@ void ScheduleGrid::paintEvent(QPaintEvent*) {
 }
 
 void ScheduleGrid::paintHeader(QPainter& painter) {
-    int right = width() - bar->width();
+    int right = viewportWidth();
     painter.fillRect(QRect(0, 0, width(), HEADER_HEIGHT), QColor("#111113"));
     painter.setPen(QColor("#2c2c32"));
     painter.drawLine(0, HEADER_HEIGHT - 1, width(), HEADER_HEIGHT - 1);
 
-    QFont small = font();
-    small.setPixelSize(10);
-    small.setBold(true);
-    painter.setFont(small);
-    painter.setPen(QColor("#8e8e97"));
-    painter.drawText(QRect(0, 0, TIME_WIDTH, HEADER_HEIGHT), Qt::AlignCenter, QString::fromUtf8("ВРЕМЯ"));
-
+    painter.save();
+    painter.setClipRect(QRect(TIME_WIDTH, 0, std::max(0, right - TIME_WIDTH), HEADER_HEIGHT));
+    painter.translate(-hbar->value(), 0);
     for (std::size_t i = 0; i < masterIds.size(); ++i) {
         std::shared_ptr<Master> master = findMasterById(shop, masterIds[i]);
         if (!master) continue;
@@ -247,7 +277,7 @@ void ScheduleGrid::paintHeader(QPainter& painter) {
         painter.drawText(QRect(x + 12, 14, 32, 32), Qt::AlignCenter, initials(master->getName()));
 
         int textX = x + 52;
-        int textWidth = std::max(10, std::min(columnWidthValue, right - x) - 60);
+        int textWidth = std::max(10, columnWidthValue - 60);
         QFont nameFont = font();
         nameFont.setPixelSize(13);
         nameFont.setBold(true);
@@ -268,13 +298,24 @@ void ScheduleGrid::paintHeader(QPainter& painter) {
         painter.drawText(QRect(textX, 31, textWidth, 16), Qt::AlignLeft | Qt::AlignVCenter,
             infoMetrics.elidedText(info, Qt::ElideRight, textWidth));
     }
+    painter.restore();
+
+    painter.fillRect(QRect(0, 0, TIME_WIDTH, HEADER_HEIGHT), QColor("#111113"));
+    painter.setPen(QColor("#2c2c32"));
+    painter.drawLine(0, HEADER_HEIGHT - 1, TIME_WIDTH, HEADER_HEIGHT - 1);
+    QFont small = font();
+    small.setPixelSize(10);
+    small.setBold(true);
+    painter.setFont(small);
+    painter.setPen(QColor("#8e8e97"));
+    painter.drawText(QRect(0, 0, TIME_WIDTH, HEADER_HEIGHT), Qt::AlignCenter, QString::fromUtf8("ВРЕМЯ"));
 }
 
 void ScheduleGrid::paintBody(QPainter& painter) {
-    int right = width() - bar->width();
+    int right = contentWidth();
     painter.save();
-    painter.setClipRect(QRect(0, HEADER_HEIGHT, width(), height() - HEADER_HEIGHT));
-    painter.translate(0, HEADER_HEIGHT - bar->value());
+    painter.setClipRect(QRect(TIME_WIDTH, HEADER_HEIGHT, std::max(0, viewportWidth() - TIME_WIDTH), viewportHeight()));
+    painter.translate(-hbar->value(), HEADER_HEIGHT - bar->value());
 
     int columns = static_cast<int>(masterIds.size());
     int bodyHeight = contentHeight();
@@ -306,10 +347,7 @@ void ScheduleGrid::paintBody(QPainter& painter) {
         int y = yOf(minute);
         if (minute % 60 == 0) {
             painter.setPen(QColor("#2c2c32"));
-            painter.drawLine(TIME_WIDTH - 6, y, right, y);
-            painter.setPen(QColor("#8e8e97"));
-            painter.drawText(QRect(0, y - 8, TIME_WIDTH - 12, 16), Qt::AlignRight | Qt::AlignVCenter,
-                formatClock(minute));
+            painter.drawLine(TIME_WIDTH, y, right, y);
         }
         else if (minute % 30 == 0) {
             painter.setPen(QPen(QColor("#222226"), 1, Qt::DashLine));
@@ -326,16 +364,32 @@ void ScheduleGrid::paintBody(QPainter& painter) {
     if (day.dayNumber() == now.dayNumber() && now.minuteOfDay() >= startMinute && now.minuteOfDay() <= endMinute) {
         int y = yOf(now.minuteOfDay());
         painter.setPen(QPen(QColor("#ef6b70"), 2));
-        painter.drawLine(TIME_WIDTH - 4, y, right, y);
-        painter.setBrush(QColor("#ef6b70"));
-        painter.setPen(Qt::NoPen);
-        painter.drawEllipse(QPoint(TIME_WIDTH - 4, y), 4, 4);
+        painter.drawLine(TIME_WIDTH, y, right, y);
     }
 
     if (columns == 0) {
         painter.setPen(QColor("#8e8e97"));
-        painter.drawText(QRect(0, 40, width(), 40), Qt::AlignCenter, QString::fromUtf8("Мастера ещё не добавлены"));
+        painter.drawText(QRect(TIME_WIDTH, 40, viewportWidth(), 40), Qt::AlignCenter, QString::fromUtf8("Мастера ещё не добавлены"));
     }
+    painter.restore();
+
+    painter.save();
+    painter.setClipRect(QRect(0, HEADER_HEIGHT, TIME_WIDTH, viewportHeight()));
+    painter.translate(0, HEADER_HEIGHT - bar->value());
+    painter.fillRect(QRect(0, 0, TIME_WIDTH, bodyHeight), QColor("#0d0d0f"));
+    painter.setFont(timeFont);
+    painter.setPen(QColor("#8e8e97"));
+    for (int minute = startMinute; minute <= endMinute; minute += 60) {
+        painter.drawText(QRect(0, yOf(minute) - 8, TIME_WIDTH - 12, 16), Qt::AlignRight | Qt::AlignVCenter,
+            formatClock(minute));
+    }
+    if (day.dayNumber() == now.dayNumber() && now.minuteOfDay() >= startMinute && now.minuteOfDay() <= endMinute) {
+        painter.setBrush(QColor("#ef6b70"));
+        painter.setPen(Qt::NoPen);
+        painter.drawEllipse(QPoint(TIME_WIDTH - 4, yOf(now.minuteOfDay())), 4, 4);
+    }
+    painter.setPen(QColor("#2c2c32"));
+    painter.drawLine(TIME_WIDTH, 0, TIME_WIDTH, bodyHeight);
     painter.restore();
 }
 
@@ -400,7 +454,7 @@ void ScheduleGrid::paintBlock(QPainter& painter, const Block& block) {
     if (appointment->isPaid()) statusLabel += QString::fromUtf8(" · оплачено");
     painter.setPen(base);
     painter.drawText(QRect(left, r.top() + 6, textWidth, 15), Qt::AlignRight | Qt::AlignVCenter,
-        smallMetrics.elidedText(statusLabel, Qt::ElideLeft, std::max(10, textWidth - 90)));
+        smallMetrics.elidedText(statusLabel, Qt::ElideRight, std::max(10, textWidth - 72)));
 
     painter.setFont(nameFont);
     painter.setPen(textColor);

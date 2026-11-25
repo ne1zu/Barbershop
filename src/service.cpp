@@ -14,7 +14,7 @@ Service::Service(std::string_view nameValue, double priceValue, int lengthValue)
 
 Service::Service(int idValue, std::string_view nameValue, double priceValue, int lengthValue)
     : id(idValue), price(0.0), length(0) {
-    if (idValue <= 0) throw InvalidDataException("service id", "must be positive");
+    if (idValue <= 0) throw InvalidDataException("номер услуги", "должно быть положительным");
     setName(nameValue);
     setPrice(priceValue);
     setLength(lengthValue);
@@ -27,26 +27,26 @@ double Service::getPrice() const { return price; }
 int Service::getLength() const { return length; }
 
 void Service::setName(std::string_view nameValue) {
-    if (isBlank(nameValue)) throw InvalidDataException("service name", "must not be empty");
+    if (isBlank(nameValue)) throw InvalidDataException("название услуги", "не может быть пустым");
     if (!isStorableText(nameValue)) {
-        throw InvalidDataException("service name", "must not contain '|' or a line break");
+        throw InvalidDataException("название услуги", "не должно содержать «|» и переводов строки");
     }
     name = nameValue;
 }
 
 void Service::setPrice(double priceValue) {
     double rounded = roundMoney(priceValue);
-    if (rounded <= 0) throw InvalidDataException("price", "must be positive, got " + formatMoney(priceValue));
+    if (rounded <= 0) throw InvalidDataException("цена", "должна быть положительной, указано " + formatMoney(priceValue));
     price = rounded;
 }
 
 void Service::setLength(int lengthValue) {
     if (lengthValue <= 0 || lengthValue > MAX_SERVICE_MINUTES) {
-        throw InvalidDataException("duration", "must be 1-" + std::to_string(MAX_SERVICE_MINUTES)
+        throw InvalidDataException("длительность", "от 1 до " + std::to_string(MAX_SERVICE_MINUTES)
             + " minutes, got " + std::to_string(lengthValue));
     }
     if (lengthValue % GRID_STEP_MINUTES != 0) {
-        throw InvalidDataException("duration", "must be a multiple of " + std::to_string(GRID_STEP_MINUTES));
+        throw InvalidDataException("длительность", "кратна " + std::to_string(GRID_STEP_MINUTES) + " минутам");
     }
     length = lengthValue;
 }

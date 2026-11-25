@@ -3,5 +3,5 @@
 
 class AuthenticationException : public BarbershopException {
 public:
-    AuthenticationException() : BarbershopException("Wrong login or password.") {}
+    AuthenticationException() : BarbershopException("Неверный логин или пароль.") {}
 };

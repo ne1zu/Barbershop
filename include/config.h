@@ -3,6 +3,7 @@
 const int GRID_STEP_MINUTES = 15;
 const int MAX_SERVICE_MINUTES = 480;
 const int CANCEL_LIMIT_HOURS = 2;
+const int ARRIVAL_EARLY_MINUTES = 15;
 const int MIN_PASSWORD_LENGTH = 6;
 
 const int DEFAULT_WORK_START = 10 * 60;

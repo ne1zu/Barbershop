@@ -11,13 +11,13 @@ std::string Person::getName() const { return name; }
 std::string Person::getPhone() const { return phone; }
 
 void Person::setName(std::string_view nameValue) {
-    if (isBlank(nameValue)) throw InvalidDataException("name", "must not be empty");
-    if (!isStorableText(nameValue)) throw InvalidDataException("name", "must not contain '|' or a line break");
+    if (isBlank(nameValue)) throw InvalidDataException("имя", "не может быть пустым");
+    if (!isStorableText(nameValue)) throw InvalidDataException("имя", "не должно содержать «|» и переводов строки");
     name = nameValue;
 }
 
 void Person::setPhone(std::string_view phoneValue) {
-    if (!isValidPhone(phoneValue)) throw InvalidDataException("phone", "expected format +375XXXXXXXXX");
+    if (!isValidPhone(phoneValue)) throw InvalidDataException("телефон", "ожидается формат +375XXXXXXXXX");
     phone = phoneValue;
 }
 

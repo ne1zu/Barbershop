@@ -8,7 +8,7 @@ private:
 
 public:
     InvalidDataException(const std::string& fieldName, const std::string& reason)
-        : BarbershopException("Invalid value for '" + fieldName + "': " + reason + "."), field(fieldName) {}
+        : BarbershopException("Некорректное значение поля «" + fieldName + "»: " + reason + "."), field(fieldName) {}
 
     const std::string& getField() const { return field; }
 };

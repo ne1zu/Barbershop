@@ -8,10 +8,10 @@ private:
     int size;
 
     static std::string makeMessage(int indexValue, int sizeValue) {
-        std::string text = "Index " + std::to_string(indexValue) + " is out of range";
-        if (sizeValue <= 0) return text + ", the collection is empty.";
-        if (sizeValue == 1) return text + ", the only valid index is 0.";
-        return text + ", valid indexes are 0.." + std::to_string(sizeValue - 1) + ".";
+        std::string text = "Индекс " + std::to_string(indexValue) + " вне допустимого диапазона";
+        if (sizeValue <= 0) return text + ", коллекция пуста.";
+        if (sizeValue == 1) return text + ", допустим только индекс 0.";
+        return text + ", допустимые индексы: 0.." + std::to_string(sizeValue - 1) + ".";
     }
 
 public:

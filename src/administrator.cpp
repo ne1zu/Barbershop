@@ -16,8 +16,8 @@ Administrator::Administrator(std::string_view nameValue, std::string_view phoneV
 Administrator::Administrator(int idValue, std::string_view nameValue, std::string_view phoneValue,
     std::string_view loginValue, std::string_view hash, std::string_view positionValue)
     : Person(idValue, "", "") {
-    if (idValue <= 0) throw InvalidDataException("administrator id", "must be positive");
-    if (!isDigits(hash)) throw InvalidDataException("password hash", "is damaged");
+    if (idValue <= 0) throw InvalidDataException("номер администратора", "должно быть положительным");
+    if (!isDigits(hash)) throw InvalidDataException("хеш пароля", "повреждён");
     setName(nameValue);
     setPhone(phoneValue);
     setLogin(loginValue);
@@ -32,7 +32,7 @@ std::string Administrator::getPosition() const { return position; }
 
 void Administrator::setLogin(std::string_view loginValue) {
     if (!isValidLogin(loginValue)) {
-        throw InvalidDataException("login", "3-20 characters: letters, digits or '_'");
+        throw InvalidDataException("логин", "3–20 символов: латинские буквы, цифры или «_»");
     }
     login = loginValue;
 }
@@ -42,9 +42,9 @@ void Administrator::setPassword(std::string_view password) {
 }
 
 void Administrator::setPosition(std::string_view positionValue) {
-    if (isBlank(positionValue)) throw InvalidDataException("position", "must not be empty");
+    if (isBlank(positionValue)) throw InvalidDataException("должность", "не может быть пустым");
     if (!isStorableText(positionValue)) {
-        throw InvalidDataException("position", "must not contain '|' or a line break");
+        throw InvalidDataException("должность", "не должно содержать «|» и переводов строки");
     }
     position = positionValue;
 }
@@ -58,7 +58,7 @@ bool Administrator::operator==(const Administrator& other) const { return login 
 std::string Administrator::getEntityType() const { return "Administrator"; }
 
 std::string Administrator::classify() const {
-    return position == "Owner" ? "Owner" : "Manager";
+    return position == "Владелец" ? "Owner" : "Manager";
 }
 
 void Administrator::printInfo(std::ostream& os) const {

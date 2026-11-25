@@ -11,9 +11,11 @@ class StaffPage : public PageBase {
 private:
     QTableWidget* table;
     QPushButton* removeButton;
+    QPushButton* editButton;
 
 private slots:
     void onSelectionChanged();
+    void onEdit();
     void onAddMaster();
     void onAddAdmin();
     void onRemove();
@@ -30,9 +32,11 @@ class ServicesCatalogPage : public PageBase {
 private:
     QTableWidget* table;
     QPushButton* removeButton;
+    QPushButton* editButton;
 
 private slots:
     void onSelectionChanged();
+    void onEdit();
     void onAdd();
     void onRemove();
 

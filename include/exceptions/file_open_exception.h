@@ -5,6 +5,6 @@
 class FileOpenException : public BarbershopException {
 public:
     FileOpenException(const std::string& filename, const std::string& purpose)
-        : BarbershopException("Cannot open file '" + filename + "' for " + purpose
-            + ". Check the path and the access rights.") {}
+        : BarbershopException("Не удаётся открыть файл «" + filename + "» (" + purpose
+            + "). Проверьте путь и права доступа.") {}
 };

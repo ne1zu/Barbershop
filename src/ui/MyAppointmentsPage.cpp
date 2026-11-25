@@ -21,6 +21,7 @@ MyAppointmentsPage::MyAppointmentsPage(AppContext* contextValue, QWidget* parent
     table = makeTable({ QString::fromUtf8("Дата"), QString::fromUtf8("Время"), QString::fromUtf8("Мастер"),
         QString::fromUtf8("Услуга"), QString::fromUtf8("Цена"), QString::fromUtf8("Статус") });
     root->addWidget(table, 1);
+    fixColumn(table, 5, 150);
 
     emptyLabel = makeLabel(QString::fromUtf8("У вас нет предстоящих записей. Перейдите в раздел «Записаться»."), "emptyState");
     emptyLabel->setAlignment(Qt::AlignCenter);
@@ -58,7 +59,7 @@ void MyAppointmentsPage::refresh() {
         QTableWidgetItem* first = makeItem(formatDay(appointment->getStart()));
         first->setData(Qt::UserRole, appointment->getId());
         table->setItem(row, 0, first);
-        table->setItem(row, 1, makeItem(qs(appointment->getTimeRange())));
+        table->setItem(row, 1, makeItem(timeRangeText(*appointment)));
         table->setItem(row, 2, makeItem(qs(appointment->getMaster()->getName())));
         table->setItem(row, 3, makeItem(qs(appointment->getService()->getName())));
         table->setItem(row, 4, makeItem(money(appointment->getPrice())));
@@ -73,8 +74,8 @@ void MyAppointmentsPage::refresh() {
 
 void MyAppointmentsPage::onSelectionChanged() {
     ActionState state = actions::stateFor(ctx(), selected());
-    rescheduleButton->setEnabled(state.reschedule);
-    cancelButton->setEnabled(state.cancel);
+    setActionEnabled(rescheduleButton, state.reschedule, state.rescheduleHint);
+    setActionEnabled(cancelButton, state.cancel, state.cancelHint);
 }
 
 void MyAppointmentsPage::onReschedule() {

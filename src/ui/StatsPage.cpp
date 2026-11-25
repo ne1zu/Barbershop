@@ -41,16 +41,12 @@ QString StatsPage::title() const {
 }
 
 void StatsPage::refresh() {
-    QWidget* host = content->parentWidget();
-    if (host) host->setUpdatesEnabled(false);
-
     clearLayout(content);
     if (ctx()->isAdmin()) buildAdmin();
     else buildMaster();
     content->addStretch(1);
-
-    if (host) host->setUpdatesEnabled(true);
 }
+
 void StatsPage::buildMaster() {
     MasterStatistics stats = calculateMasterStatistics(shop(), *ctx()->master());
     QHBoxLayout* first = new QHBoxLayout;
@@ -157,8 +153,6 @@ void StatsPage::buildAdmin() {
         QString::fromUtf8("Неявки"), QString::fromUtf8("Отмены"), QString::fromUtf8("Предстоит"),
         QString::fromUtf8("Клиентов") });
     table->setSelectionMode(QAbstractItemView::NoSelection);
-    mastersBox->addWidget(table);
-    content->addWidget(mastersCard);
     for (const auto& master : shop().getMasters()) {
         MasterStatistics item = calculateMasterStatistics(shop(), *master);
         int row = table->rowCount();
@@ -174,7 +168,8 @@ void StatsPage::buildAdmin() {
         table->setItem(row, 8, makeItem(QString::number(item.uniqueClients)));
     }
     fitTableHeight(table);
-   
+    mastersBox->addWidget(table);
+    content->addWidget(mastersCard);
 
     QVBoxLayout* eventsBox = nullptr;
     QFrame* eventsCard = sectionCard(QString::fromUtf8("Последние события"), &eventsBox);

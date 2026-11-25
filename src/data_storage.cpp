@@ -159,8 +159,8 @@ namespace {
     string readLine(LoadContext& ctx) {
         string line;
         if (!getline(ctx.file, line)) {
-            if (!ctx.file.eof()) throw FileIOException(ctx.filename, "reading");
-            throw FileFormatException(ctx.lineNumber + 1, "unexpected end of file");
+            if (!ctx.file.eof()) throw FileIOException(ctx.filename, "чтение");
+            throw FileFormatException(ctx.lineNumber + 1, "неожиданный конец файла");
         }
         ctx.lineNumber++;
         if (!line.empty() && line.back() == '\r') line.pop_back();
@@ -184,7 +184,7 @@ namespace {
         vector<string> fields = splitLine(readLine(ctx));
         if (fields.size() != expectedCount) {
             throw FileFormatException(ctx.lineNumber,
-                "expected " + to_string(expectedCount) + " fields, got " + to_string(fields.size()));
+                "ожидалось полей: " + to_string(expectedCount) + ", найдено: " + to_string(fields.size()));
         }
         return fields;
     }
@@ -194,7 +194,7 @@ namespace {
         int value = 0;
         if (text.empty() || !(in >> value) || !in.eof()) {
             throw FileFormatException(ctx.lineNumber,
-                "field '" + field + "' must be an integer, got \"" + text + "\"");
+                "поле «" + field + "» должно быть целым числом, найдено \"" + text + "\"");
         }
         return value;
     }
@@ -204,7 +204,7 @@ namespace {
         double value = 0.0;
         if (text.empty() || !(in >> value) || !in.eof() || !isfinite(value)) {
             throw FileFormatException(ctx.lineNumber,
-                "field '" + field + "' must be a number, got \"" + text + "\"");
+                "поле «" + field + "» должно быть числом, найдено \"" + text + "\"");
         }
         return value;
     }
@@ -213,7 +213,7 @@ namespace {
         int value = parseInt(text, ctx, field);
         if (value < 1 || value > MAX_ID) {
             throw FileFormatException(ctx.lineNumber,
-                "field '" + field + "' must be between 1 and " + to_string(MAX_ID) + ", got " + text);
+                "поле «" + field + "» должно быть от 1 до " + to_string(MAX_ID) + ", найдено " + text);
         }
         return value;
     }
@@ -221,7 +221,7 @@ namespace {
     bool parseFlag(const string& text, const LoadContext& ctx, const string& field) {
         if (text != "0" && text != "1") {
             throw FileFormatException(ctx.lineNumber,
-                "field '" + field + "' must be 0 or 1, got \"" + text + "\"");
+                "поле «" + field + "» должно быть 0 или 1, найдено \"" + text + "\"");
         }
         return text == "1";
     }
@@ -236,7 +236,7 @@ namespace {
         if (space == string::npos || !DateTime::parseDate(text.substr(0, space), day, month, year)
             || !DateTime::parseTime(text.substr(space + 1), hour, minute)) {
             throw FileFormatException(ctx.lineNumber,
-                "field '" + field + "' must look like dd.mm.yyyy hh:mm, got \"" + text + "\"");
+                "поле «" + field + "» должно иметь вид дд.мм.гггг чч:мм, найдено \"" + text + "\"");
         }
         return DateTime(year, month, day, hour, minute);
     }
@@ -245,7 +245,7 @@ namespace {
     void requireNewId(const unordered_map<int, shared_ptr<T>>& items, int id, const LoadContext& ctx,
         const string& kind) {
         if (items.count(id) > 0) {
-            throw FileFormatException(ctx.lineNumber, "duplicate " + kind + " id " + to_string(id));
+            throw FileFormatException(ctx.lineNumber, "повторяющийся номер (" + kind + "): " + to_string(id));
         }
     }
 
@@ -254,7 +254,7 @@ namespace {
         const string& kind) {
         typename unordered_map<int, shared_ptr<T>>::const_iterator found = items.find(id);
         if (found == items.end()) {
-            throw FileFormatException(ctx.lineNumber, kind + " with id " + to_string(id) + " does not exist");
+            throw FileFormatException(ctx.lineNumber, "не существует объект (" + kind + ") с номером " + to_string(id));
         }
         return found->second;
     }
@@ -263,16 +263,16 @@ namespace {
         vector<string> fields = splitLine(readLine(ctx));
         if (fields[0] != FORMAT_HEADER) {
             throw FileFormatException(ctx.lineNumber,
-                "this is not a barbershop state file (the header '" + FORMAT_HEADER + "' was expected)");
+                "это не файл состояния барбершопа (ожидался заголовок «" + FORMAT_HEADER + "»)");
         }
         if (fields.size() != HEADER_FIELD_COUNT) {
             throw FileFormatException(ctx.lineNumber,
-                "expected " + to_string(HEADER_FIELD_COUNT) + " fields, got " + to_string(fields.size()));
+                "ожидалось полей: " + to_string(HEADER_FIELD_COUNT) + ", найдено: " + to_string(fields.size()));
         }
         int version = parseInt(fields[1], ctx, "format version");
         if (version != FORMAT_VERSION) {
             throw FileFormatException(ctx.lineNumber,
-                "unsupported format version " + to_string(version) + " (supported: "
+                "неподдерживаемая версия формата " + to_string(version) + " (поддерживается: "
                 + to_string(FORMAT_VERSION) + ")");
         }
     }
@@ -281,12 +281,12 @@ namespace {
         vector<string> fields = readFields(ctx, SECTION_FIELD_COUNT);
         if (fields[0] != sectionName) {
             throw FileFormatException(ctx.lineNumber,
-                "section '" + sectionName + "' was expected, got \"" + fields[0] + "\"");
+                "ожидался раздел «" + sectionName + "», найдено \"" + fields[0] + "\"");
         }
         int count = parseInt(fields[1], ctx, "number of records");
         if (count < 0) {
             throw FileFormatException(ctx.lineNumber,
-                "number of records must not be negative, got " + to_string(count));
+                "число записей не может быть отрицательным, найдено " + to_string(count));
         }
         return count;
     }
@@ -295,7 +295,7 @@ namespace {
         int count = readSectionHeader(ctx, SHOP_SECTION);
         if (count != 1) {
             throw FileFormatException(ctx.lineNumber,
-                "the section " + SHOP_SECTION + " must contain exactly one record");
+                "раздел " + SHOP_SECTION + " должен содержать ровно одну запись");
         }
         vector<string> f = readFields(ctx, SHOP_FIELD_COUNT);
         ctx.shop = make_unique<Barbershop>(f[0], f[1]);
@@ -323,7 +323,7 @@ namespace {
             requireNewId(ctx.clients, id, ctx, "Client");
             bool banned = parseFlag(f[3], ctx, "banned");
             if (!banned && !f[4].empty()) {
-                throw FileFormatException(ctx.lineNumber, "a client who is not banned must have no ban reason");
+                throw FileFormatException(ctx.lineNumber, "у незаблокированного клиента не может быть причины блокировки");
             }
             int visits = parseInt(f[5], ctx, "visits");
             int noShows = parseInt(f[6], ctx, "no-shows");
@@ -372,7 +372,7 @@ namespace {
             int duration = parseInt(f[3], ctx, "custom duration");
             if (master->canPerform(*service)) {
                 throw FileFormatException(ctx.lineNumber,
-                    "master '" + master->getName() + "' already offers '" + service->getName() + "'");
+                    "мастер «" + master->getName() + "» уже оказывает услугу «" + service->getName() + "»");
             }
             master->setOffer(service, price, duration);
         }
@@ -381,14 +381,14 @@ namespace {
     void readAdministrators(LoadContext& ctx) {
         int count = readSectionHeader(ctx, ADMINISTRATORS_SECTION);
         if (count < 1) {
-            throw FileFormatException(ctx.lineNumber, "the barbershop must have at least one administrator");
+            throw FileFormatException(ctx.lineNumber, "в барбершопе должен быть хотя бы один администратор");
         }
         set<int> usedIds;
         for (int i = 0; i < count; i++) {
             vector<string> f = readFields(ctx, ADMINISTRATOR_FIELD_COUNT);
             int id = parseId(f[0], ctx, "administrator id");
             if (!usedIds.insert(id).second) {
-                throw FileFormatException(ctx.lineNumber, "duplicate Administrator id " + to_string(id));
+                throw FileFormatException(ctx.lineNumber, "повторяющийся номер администратора: " + to_string(id));
             }
             *ctx.shop += make_shared<Administrator>(id, f[1], f[2], f[3], f[4], f[5]);
         }
@@ -408,7 +408,7 @@ namespace {
             DateTime start = parseDateTime(f[6], ctx, "start");
             AppointmentStatus status = AppointmentStatus::Pending;
             if (!parseStatus(f[7], status)) {
-                throw FileFormatException(ctx.lineNumber, "unknown status \"" + f[7] + "\"");
+                throw FileFormatException(ctx.lineNumber, "неизвестный статус \"" + f[7] + "\"");
             }
             bool firstVisit = parseFlag(f[8], ctx, "first visit");
             bool paid = parseFlag(f[9], ctx, "paid");
@@ -430,7 +430,7 @@ namespace {
             int discount = parseInt(f[3], ctx, "discount");
             PaymentMethod method = PaymentMethod::Cash;
             if (!parsePaymentMethod(f[4], method)) {
-                throw FileFormatException(ctx.lineNumber, "unknown payment method \"" + f[4] + "\"");
+                throw FileFormatException(ctx.lineNumber, "неизвестный способ оплаты \"" + f[4] + "\"");
             }
             DateTime paidAt = parseDateTime(f[5], ctx, "payment time");
             ctx.shop->restorePayment(make_shared<Payment>(id, appointment, amount, discount, method, paidAt));
@@ -439,7 +439,7 @@ namespace {
         for (const auto& entry : ctx.appointments) {
             if (entry.second->isPaid() && ctx.paidAppointmentIds.count(entry.first) == 0) {
                 throw FileFormatException(ctx.lineNumber,
-                    "appointment #" + to_string(entry.first) + " is marked as paid but has no payment");
+                    "запись №" + to_string(entry.first) + " отмечена как оплаченная, но платежа нет");
             }
         }
     }
@@ -450,10 +450,10 @@ namespace {
             ctx.lineNumber++;
             if (!line.empty() && line.back() == '\r') line.pop_back();
             if (!line.empty()) {
-                throw FileFormatException(ctx.lineNumber, "extra data after the last record");
+                throw FileFormatException(ctx.lineNumber, "лишние данные после последней записи");
             }
         }
-        if (!ctx.file.eof()) throw FileIOException(ctx.filename, "reading");
+        if (!ctx.file.eof()) throw FileIOException(ctx.filename, "чтение");
     }
 }
 
@@ -462,7 +462,7 @@ DataStorage::DataStorage(const string& filenameValue) : filename(filenameValue) 
 void DataStorage::save(const Barbershop& shop) const {
     const string temporaryName = filename + ".tmp";
     ofstream file(temporaryName);
-    if (!file) throw FileOpenException(temporaryName, "writing");
+    if (!file) throw FileOpenException(temporaryName, "запись");
 
     file << setprecision(10);
     file << FORMAT_HEADER << FIELD_SEPARATOR << FORMAT_VERSION << '\n';
@@ -480,7 +480,7 @@ void DataStorage::save(const Barbershop& shop) const {
     if (!file) {
         error_code ignored;
         filesystem::remove(temporaryName, ignored);
-        throw FileIOException(temporaryName, "writing");
+        throw FileIOException(temporaryName, "запись");
     }
 
     error_code renameError;
@@ -488,13 +488,13 @@ void DataStorage::save(const Barbershop& shop) const {
     if (renameError) {
         error_code ignored;
         filesystem::remove(temporaryName, ignored);
-        throw FileIOException(filename, "replacing");
+        throw FileIOException(filename, "замена");
     }
 }
 
 Barbershop DataStorage::load() const {
     LoadContext ctx(filename);
-    if (!ctx.file) throw FileOpenException(filename, "reading");
+    if (!ctx.file) throw FileOpenException(filename, "чтение");
 
     try {
         readHeader(ctx);

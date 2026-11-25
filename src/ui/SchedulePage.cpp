@@ -200,12 +200,12 @@ void SchedulePage::updateDetails() {
     }
 
     ActionState state = actions::stateFor(ctx(), appointment);
-    confirmButton->setEnabled(state.confirm);
-    arrivedButton->setEnabled(state.arrived);
-    noShowButton->setEnabled(state.noShow);
-    cancelButton->setEnabled(state.cancel);
-    rescheduleButton->setEnabled(state.reschedule);
-    payButton->setEnabled(state.pay);
+    setActionEnabled(confirmButton, state.confirm, state.confirmHint);
+    setActionEnabled(arrivedButton, state.arrived, state.arrivedHint);
+    setActionEnabled(noShowButton, state.noShow, state.noShowHint);
+    setActionEnabled(cancelButton, state.cancel, state.cancelHint);
+    setActionEnabled(rescheduleButton, state.reschedule, state.rescheduleHint);
+    setActionEnabled(payButton, state.pay, state.payHint);
     grid->setSelectedAppointmentId(selectedId);
 }
 

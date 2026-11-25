@@ -446,11 +446,17 @@ void BookingPanel::finishBooking(const std::shared_ptr<Appointment>& appointment
 void BookingPanel::onBook() {
     try {
         std::shared_ptr<Client> client = currentClient();
-        if (!client) throw InvalidDataException("client", "choose a client from the list");
+        if (!client) throw InvalidDataException("клиент", "выберите клиента из списка");
         if (client->isBanned()) throw ClientBannedException(client->getName());
         std::shared_ptr<Master> master = currentMaster();
         std::shared_ptr<Service> service = currentService();
-        if (!master || !service || selectedSlot < 0) throw InvalidDataException("time", "choose a time slot");
+        if (!master || !service || selectedSlot < 0) throw InvalidDataException("время", "выберите время записи");
+        if (!askConfirm(this, QString::fromUtf8("Подтверждение записи"),
+            QString::fromUtf8("Вы точно хотите создать запись?\n\n%1 · %2\n%3 · %4").arg(qs(client->getName()),
+                qs(service->getName()), qs(master->getName()), formatDayTime(times[selectedSlot])),
+            QString::fromUtf8("Да, записать"))) {
+            return;
+        }
         std::shared_ptr<Appointment> appointment =
             shop().book(client, master, service, times[selectedSlot], context->user());
         updateSlots();
@@ -478,9 +484,9 @@ void BookingPanel::clearOptions() {
 void BookingPanel::onFind() {
     try {
         std::shared_ptr<Client> client = currentClient();
-        if (!client) throw InvalidDataException("client", "choose a client from the list");
+        if (!client) throw InvalidDataException("клиент", "выберите клиента из списка");
         if (client->isBanned()) throw ClientBannedException(client->getName());
-        if (smartService->currentIndex() < 0) throw InvalidDataException("service", "no service is available");
+        if (smartService->currentIndex() < 0) throw InvalidDataException("услуга", "нет доступных услуг");
         SlotRequest request;
         request.client = client;
         request.service = findServiceById(shop(), smartService->currentData().toInt());
@@ -542,7 +548,7 @@ void BookingPanel::showOptions() {
         QVBoxLayout* scoreBox = new QVBoxLayout;
         scoreBox->setSpacing(4);
         QHBoxLayout* scoreLine = new QHBoxLayout;
-        scoreLine->addWidget(makeLabel("SCORE", "statTitle"));
+        scoreLine->addWidget(makeLabel(QString::fromUtf8("ОЦЕНКА"), "statTitle"));
         scoreLine->addStretch(1);
         scoreLine->addWidget(makeLabel(QString::number(option.score), "scoreValue"));
         scoreBox->addLayout(scoreLine);
@@ -565,10 +571,16 @@ void BookingPanel::onOptionChosen(int index) {
     if (index < 0 || index >= static_cast<int>(options.size())) return;
     try {
         std::shared_ptr<Client> client = currentClient();
-        if (!client) throw InvalidDataException("client", "choose a client from the list");
+        if (!client) throw InvalidDataException("клиент", "выберите клиента из списка");
         if (client->isBanned()) throw ClientBannedException(client->getName());
         std::shared_ptr<Service> service = findServiceById(shop(), smartService->currentData().toInt());
         SlotOption option = options[index];
+        if (!askConfirm(this, QString::fromUtf8("Подтверждение записи"),
+            QString::fromUtf8("Вы точно хотите создать запись?\n\n%1 · %2\n%3 · %4").arg(qs(client->getName()),
+                qs(service->getName()), qs(option.master->getName()), formatDayTime(option.start)),
+            QString::fromUtf8("Да, записать"))) {
+            return;
+        }
         std::shared_ptr<Appointment> appointment =
             shop().book(client, option.master, service, option.start, context->user());
         clearOptions();

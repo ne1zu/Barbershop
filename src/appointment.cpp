@@ -17,6 +17,17 @@ bool parseStatus(const std::string& text, AppointmentStatus& status) {
     return false;
 }
 
+std::string statusTitle(AppointmentStatus status) {
+    switch (status) {
+    case AppointmentStatus::Pending: return "Ожидает";
+    case AppointmentStatus::Confirmed: return "Подтверждена";
+    case AppointmentStatus::Arrived: return "Пришёл";
+    case AppointmentStatus::NoShow: return "Неявка";
+    case AppointmentStatus::Cancelled: return "Отменена";
+    }
+    return "";
+}
+
 std::string statusToString(AppointmentStatus status) {
     switch (status) {
     case AppointmentStatus::Pending: return "Pending";
@@ -49,11 +60,11 @@ Appointment::Appointment(int idValue, std::shared_ptr<Client> clientValue, std::
     if (!client) throw NullObjectException("Appointment", "client");
     if (!master) throw NullObjectException("Appointment", "master");
     if (!service) throw NullObjectException("Appointment", "service");
-    if (idValue <= 0) throw InvalidDataException("appointment id", "must be positive");
-    if (priceValue < 0) throw InvalidDataException("price", "must not be negative");
-    if (durationValue <= 0) throw InvalidDataException("duration", "must be positive");
+    if (idValue <= 0) throw InvalidDataException("номер записи", "должно быть положительным");
+    if (priceValue < 0) throw InvalidDataException("цена", "не может быть отрицательным");
+    if (durationValue <= 0) throw InvalidDataException("длительность", "должна быть положительной");
     if (paidValue && statusValue != AppointmentStatus::Arrived) {
-        throw InvalidDataException("paid", "only a visit marked as arrived can be paid");
+        throw InvalidDataException("оплата", "оплатить можно только визит со статусом «Пришёл»");
     }
     if (counter <= idValue) counter = idValue + 1;
 }
@@ -110,12 +121,12 @@ bool Appointment::operator>(const Appointment& other) const { return start > oth
 std::string Appointment::getEntityType() const { return "Appointment"; }
 
 void Appointment::printInfo(std::ostream& os) const {
-    os << getEntityType() << " #" << id << " | " << getTimeRange()
-        << " | Client: " << client->getName() << (firstVisit ? " [NEW]" : "")
-        << " | Master: " << master->getName()
+    os << "Запись №" << id << " | " << getTimeRange()
+        << " | Клиент: " << client->getName() << (firstVisit ? " [НОВЫЙ]" : "")
+        << " | Мастер: " << master->getName()
         << " | " << service->getName()
-        << " | Price: " << formatMoney(price)
-        << " | " << statusToString(status) << (paid ? " [PAID]" : "");
+        << " | Цена: " << formatMoney(price)
+        << " | " << statusTitle(status) << (paid ? " [ОПЛАЧЕНО]" : "");
 }
 
 std::string Appointment::classify() const {

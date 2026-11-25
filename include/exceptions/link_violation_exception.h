@@ -5,5 +5,5 @@
 class LinkViolationException : public BarbershopException {
 public:
     LinkViolationException(const std::string& objectText, const std::string& reason)
-        : BarbershopException("Link violation for " + objectText + ": " + reason + ".") {}
+        : BarbershopException("Действие невозможно для " + objectText + ": " + reason + ".") {}
 };

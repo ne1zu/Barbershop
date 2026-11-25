@@ -10,6 +10,7 @@
 enum class AppointmentStatus { Pending, Confirmed, Arrived, NoShow, Cancelled };
 
 std::string statusToString(AppointmentStatus status);
+std::string statusTitle(AppointmentStatus status);
 bool parseStatus(const std::string& text, AppointmentStatus& status);
 
 class Appointment {

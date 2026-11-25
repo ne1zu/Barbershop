@@ -17,11 +17,11 @@ Client::Client(std::string_view nameValue, std::string_view phoneValue)
 Client::Client(int idValue, std::string_view nameValue, std::string_view phoneValue, bool bannedValue,
     std::string_view reason, int visits, int noShows, int cancels, double spent)
     : Person(idValue, "", ""), banned(false), visitsCount(0), noShowCount(0), cancelCount(0), totalSpent(0.0) {
-    if (idValue <= 0) throw InvalidDataException("client id", "must be positive");
+    if (idValue <= 0) throw InvalidDataException("номер клиента", "должно быть положительным");
     setName(nameValue);
     setPhone(phoneValue);
     if (visits < 0 || noShows < 0 || cancels < 0 || spent < 0) {
-        throw InvalidDataException("client statistics", "counters and the spent amount must not be negative");
+        throw InvalidDataException("статистика клиента", "счётчики и сумма не могут быть отрицательными");
     }
     visitsCount = visits;
     noShowCount = noShows;
@@ -49,10 +49,15 @@ int Client::getDiscountPercent() const {
 }
 
 void Client::ban(std::string_view reason) {
-    if (isBlank(reason)) throw InvalidDataException("ban reason", "must not be empty");
-    if (!isStorableText(reason)) throw InvalidDataException("ban reason", "must not contain '|' or a line break");
+    if (isBlank(reason)) throw InvalidDataException("причина блокировки", "не может быть пустым");
+    if (!isStorableText(reason)) throw InvalidDataException("причина блокировки", "не должно содержать «|» и переводов строки");
     banned = true;
     banReason = reason;
+}
+
+void Client::setVisitsCount(int visits) {
+    if (visits < 0) throw InvalidDataException("число визитов", "не может быть отрицательным");
+    visitsCount = visits;
 }
 
 void Client::unban() {
@@ -61,13 +66,13 @@ void Client::unban() {
 }
 
 void Client::addNote(std::string_view text) {
-    if (isBlank(text)) throw InvalidDataException("note", "must not be empty");
-    if (!isStorableText(text)) throw InvalidDataException("note", "must not contain '|' or a line break");
+    if (isBlank(text)) throw InvalidDataException("заметка", "не может быть пустым");
+    if (!isStorableText(text)) throw InvalidDataException("заметка", "не должно содержать «|» и переводов строки");
     notes.push_back(std::string(text));
 }
 
 void Client::registerVisit(double amount) {
-    if (amount < 0) throw InvalidDataException("amount", "must not be negative");
+    if (amount < 0) throw InvalidDataException("сумма", "не может быть отрицательным");
     visitsCount++;
     totalSpent += amount;
 }

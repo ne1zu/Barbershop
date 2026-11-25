@@ -10,7 +10,7 @@ private:
 public:
     TimeAlreadyBookedException(const std::string& typeValue, const std::string& nameValue,
         const std::string& busyTime)
-        : BarbershopException(typeValue + " '" + nameValue + "' already has an appointment at this time ("
+        : BarbershopException(typeValue + " «" + nameValue + "» уже занят в это время ("
             + busyTime + ")."),
         personType(typeValue), personName(nameValue) {}
 

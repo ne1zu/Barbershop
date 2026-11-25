@@ -157,11 +157,25 @@ void AdminDialog::accept() {
 
 ServiceDialog::ServiceDialog(Barbershop& shopValue, QWidget* parent)
     : QDialog(parent), shop(shopValue) {
+    buildFields(QString::fromUtf8("Новая услуга"),
+        QString::fromUtf8("Базовая цена умножается на коэффициент уровня мастера, если мастер не задал свою."),
+        QString::fromUtf8("Добавить"));
+}
+
+ServiceDialog::ServiceDialog(Barbershop& shopValue, const std::shared_ptr<Service>& existing, QWidget* parent)
+    : QDialog(parent), shop(shopValue), editing(existing) {
+    buildFields(QString::fromUtf8("Изменение услуги"),
+        QString::fromUtf8("Уже созданные записи сохранят прежние цену и длительность, новые будут по новым."),
+        QString::fromUtf8("Сохранить"));
+    nameEdit->setText(qs(existing->getName()));
+    priceSpin->setValue(existing->getPrice());
+    lengthSpin->setValue(existing->getLength());
+}
+
+void ServiceDialog::buildFields(const QString& title, const QString& hint, const QString& okText) {
     QFormLayout* form = nullptr;
     QDialogButtonBox* buttons = nullptr;
-    buildDialogFrame(this, QString::fromUtf8("Новая услуга"),
-        QString::fromUtf8("Базовая цена умножается на коэффициент уровня мастера, если мастер не задал свою."),
-        &form, &buttons, QString::fromUtf8("Добавить"));
+    buildDialogFrame(this, title, hint, &form, &buttons, okText);
     nameEdit = new QLineEdit;
     nameEdit->setPlaceholderText(QString::fromUtf8("Например, Камуфляж бороды"));
     priceSpin = new QDoubleSpinBox;
@@ -182,9 +196,72 @@ ServiceDialog::ServiceDialog(Barbershop& shopValue, QWidget* parent)
 
 void ServiceDialog::accept() {
     try {
-        std::shared_ptr<Service> service = std::make_shared<Service>(ss(nameEdit->text().trimmed()),
-            priceSpin->value(), lengthSpin->value());
-        shop += service;
+        if (!editing) {
+            std::shared_ptr<Service> service = std::make_shared<Service>(ss(nameEdit->text().trimmed()),
+                priceSpin->value(), lengthSpin->value());
+            shop += service;
+        }
+        else {
+            if (!askConfirm(this, QString::fromUtf8("Изменение услуги"),
+                QString::fromUtf8("Вы точно хотите сохранить изменения услуги «%1»?").arg(qs(editing->getName())),
+                QString::fromUtf8("Да, сохранить"))) {
+                return;
+            }
+            Service trial(*editing);
+            trial.setName(ss(nameEdit->text().trimmed()));
+            trial.setPrice(priceSpin->value());
+            trial.setLength(lengthSpin->value());
+            for (const auto& other : shop.getServices()) {
+                if (other.get() != editing.get() && *other == trial) {
+                    throw DuplicateObjectException("Услуга", trial.getName());
+                }
+            }
+            std::string oldName = editing->getName();
+            editing->setName(trial.getName());
+            editing->setPrice(trial.getPrice());
+            editing->setLength(trial.getLength());
+            shop.log("EDIT", "Service '" + oldName + "' changed to '" + trial.getName() + "', "
+                + std::to_string(trial.getPrice()) + " BYN, " + std::to_string(trial.getLength()) + " min");
+        }
+        QDialog::accept();
+    }
+    catch (...) {
+        showError(this, shop);
+    }
+}
+
+MasterProfileDialog::MasterProfileDialog(Barbershop& shopValue, const std::shared_ptr<Master>& masterValue,
+    QWidget* parent)
+    : QDialog(parent), shop(shopValue), master(masterValue) {
+    QFormLayout* form = nullptr;
+    QDialogButtonBox* buttons = nullptr;
+    buildDialogFrame(this, QString::fromUtf8("Стаж и рейтинг"),
+        QString::fromUtf8("Мастер: ") + qs(master->getName()) + QString::fromUtf8(". Уровень и коэффициент цены пересчитаются автоматически."),
+        &form, &buttons, QString::fromUtf8("Сохранить"));
+    experienceSpin = new QSpinBox;
+    experienceSpin->setRange(0, 60);
+    experienceSpin->setSuffix(QString::fromUtf8(" лет"));
+    experienceSpin->setValue(master->getExperience());
+    ratingSpin = new QDoubleSpinBox;
+    ratingSpin->setRange(0.0, 5.0);
+    ratingSpin->setDecimals(1);
+    ratingSpin->setSingleStep(0.1);
+    ratingSpin->setValue(master->getRating());
+    form->addRow(fieldLabel(QString::fromUtf8("Стаж")), experienceSpin);
+    form->addRow(fieldLabel(QString::fromUtf8("Рейтинг")), ratingSpin);
+}
+
+void MasterProfileDialog::accept() {
+    try {
+        if (!askConfirm(this, QString::fromUtf8("Стаж и рейтинг"),
+            QString::fromUtf8("Вы точно хотите изменить стаж и рейтинг мастера «%1»?").arg(qs(master->getName())),
+            QString::fromUtf8("Да, сохранить"))) {
+            return;
+        }
+        master->setExperience(experienceSpin->value());
+        master->setRating(ratingSpin->value());
+        shop.log("EDIT", "Master '" + master->getName() + "': experience " + std::to_string(master->getExperience())
+            + ", rating " + std::to_string(master->getRating()));
         QDialog::accept();
     }
     catch (...) {
@@ -230,6 +307,11 @@ OfferDialog::OfferDialog(AppContext* contextValue, const std::shared_ptr<Master>
 void OfferDialog::accept() {
     try {
         std::shared_ptr<Service> service = findServiceById(context->shop(), serviceCombo->currentData().toInt());
+        if (!askConfirm(this, QString::fromUtf8("Услуга мастера"),
+            QString::fromUtf8("Вы точно хотите сохранить услугу «%1» для мастера «%2»?")
+                .arg(qs(service->getName()), qs(master->getName())), QString::fromUtf8("Да, сохранить"))) {
+            return;
+        }
         context->shop().setOffer(master, service, priceSpin->value(), durationSpin->value(), context->user());
         QDialog::accept();
     }

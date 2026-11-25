@@ -1,18 +1,25 @@
 #pragma once
 #include <memory>
+#include <QString>
 #include "AppContext.h"
 #include "appointment.h"
 
 class QWidget;
 
 struct ActionState {
-    bool confirm;
-    bool arrived;
-    bool noShow;
-    bool cancel;
-    bool reschedule;
-    bool pay;
-    bool remove;
+    bool confirm = false;
+    bool arrived = false;
+    bool noShow = false;
+    bool cancel = false;
+    bool reschedule = false;
+    bool pay = false;
+    bool remove = false;
+    QString confirmHint;
+    QString arrivedHint;
+    QString noShowHint;
+    QString cancelHint;
+    QString rescheduleHint;
+    QString payHint;
 };
 
 namespace actions {

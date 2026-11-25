@@ -28,7 +28,10 @@ DateTime toDateTime(const QDate& date, int minuteOfDay = 0);
 QString formatDay(const DateTime& value);
 QString formatDayTime(const DateTime& value);
 QString formatClock(int minuteOfDay);
+void setActionEnabled(QPushButton* button, bool enabled, const QString& hint);
 QString money(double value);
+QString timeRangeText(const Appointment& appointment);
+void fixColumn(QTableWidget* table, int column, int width);
 
 QString statusText(AppointmentStatus status);
 QString statusKind(AppointmentStatus status);

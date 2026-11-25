@@ -5,5 +5,5 @@
 class ServiceNotOfferedException : public BarbershopException {
 public:
     ServiceNotOfferedException(const std::string& masterName, const std::string& serviceName)
-        : BarbershopException("Master '" + masterName + "' does not offer the service '" + serviceName + "'.") {}
+        : BarbershopException("Мастер «" + masterName + "» не оказывает услугу «" + serviceName + "».") {}
 };

@@ -33,7 +33,7 @@ namespace {
 
 LoginDialog::LoginDialog(Barbershop& shopValue, QWidget* parent) : QDialog(parent), shop(shopValue) {
     setWindowTitle(QString::fromUtf8("Вход — ") + qs(shop.getName()));
-    setFixedSize(960, 640);
+    setFixedSize(1080, 700);
 
     QHBoxLayout* root = new QHBoxLayout(this);
     root->setContentsMargins(0, 0, 0, 0);
@@ -45,7 +45,7 @@ LoginDialog::LoginDialog(Barbershop& shopValue, QWidget* parent) : QDialog(paren
     QVBoxLayout* heroLayout = new QVBoxLayout(hero);
     heroLayout->setContentsMargins(36, 44, 36, 36);
     heroLayout->setSpacing(10);
-    QLabel* logo = makeLabel(QString::fromUtf8("✂"), "heroLogo");
+    QLabel* logo = makeLabel(QString::fromUtf8("ОЛ"), "heroLogo");
     logo->setFixedSize(64, 64);
     logo->setAlignment(Qt::AlignCenter);
     heroLayout->addWidget(logo);
@@ -61,7 +61,7 @@ LoginDialog::LoginDialog(Barbershop& shopValue, QWidget* parent) : QDialog(paren
     about->setWordWrap(true);
     heroLayout->addWidget(about);
     heroLayout->addStretch(1);
-    heroLayout->addWidget(makeLabel(QString::fromUtf8("Premium grooming · CRM"), "mutedSmall"));
+    heroLayout->addWidget(makeLabel(QString::fromUtf8("Премиальный груминг · CRM"), "mutedSmall"));
     root->addWidget(hero);
 
     QWidget* right = new QWidget;
@@ -149,25 +149,35 @@ QWidget* LoginDialog::buildDemoCard() {
     layout->setSpacing(8);
     layout->addWidget(makeLabel(QString::fromUtf8("ДЕМО-ДАННЫЕ ДЛЯ БЫСТРОГО ВХОДА"), "statTitle"));
     QLabel* hint = makeLabel(QString::fromUtf8(
-        "Администратор: admin / admin123   ·   Мастера: alex / alex123, ivan / ivan123, max / max12345\n"
-        "Клиенты: +375291110001 (с историей), +375291110002, +375291110003 (заблокирован), +375291110004 (новый)"),
+        "Нажмите на кнопку — вход выполнится сразу. Пароль мастера: логин + 123 "
+        "(alex123, ivan123, max12345 …). Клиенты: +375291110001 (с историей), …0003 (заблокирован), …0004 (новый)."),
         "mutedSmall");
     hint->setWordWrap(true);
     layout->addWidget(hint);
 
+    struct DemoEntry { const char* title; int tab; const char* login; const char* password; };
+    const DemoEntry entries[] = {
+        { "Админ Ольга", 2, "admin", "admin123" },
+        { "Мастер Алексей", 2, "alex", "alex123" },
+        { "Мастер Иван", 2, "ivan", "ivan123" },
+        { "Мастер Максим", 2, "max", "max12345" },
+        { "Мастер Артём", 2, "artem", "artem123" },
+        { "Мастер Денис", 2, "denis", "denis123" },
+        { "Мастер Никита", 2, "nikita", "nikita123" },
+        { "Мастер Роман", 2, "roman", "roman123" },
+        { "Мастер Кирилл", 2, "kirill", "kirill123" },
+        { "Клиент Дмитрий", 0, "+375291110001", "" },
+        { "Клиент Олег", 0, "+375291110003", "" },
+        { "Клиент Павел", 0, "+375291110004", "" }
+    };
+    const int entryCount = 12;
     QGridLayout* buttons = new QGridLayout;
     buttons->setSpacing(8);
-    QPushButton* list[7];
-    list[0] = demoButton(QString::fromUtf8("Админ"), 2, "admin", "admin123");
-    list[1] = demoButton(QString::fromUtf8("Мастер Alex"), 2, "alex", "alex123");
-    list[2] = demoButton(QString::fromUtf8("Мастер Ivan"), 2, "ivan", "ivan123");
-    list[3] = demoButton(QString::fromUtf8("Мастер Max"), 2, "max", "max12345");
-    list[4] = demoButton(QString::fromUtf8("Клиент Dmitry"), 0, "+375291110001", "");
-    list[5] = demoButton(QString::fromUtf8("Клиент Oleg"), 0, "+375291110003", "");
-    list[6] = demoButton(QString::fromUtf8("Клиент Pavel"), 0, "+375291110004", "");
-    for (int i = 0; i < 7; ++i) {
-        buttons->addWidget(list[i], i / 4, i % 4);
-        connect(list[i], &QPushButton::clicked, this, &LoginDialog::onDemo);
+    for (int i = 0; i < entryCount; ++i) {
+        QPushButton* button = demoButton(QString::fromUtf8(entries[i].title), entries[i].tab,
+            entries[i].login, entries[i].password);
+        buttons->addWidget(button, i / 4, i % 4);
+        connect(button, &QPushButton::clicked, this, &LoginDialog::onDemo);
     }
     layout->addLayout(buttons);
     return card;
@@ -180,10 +190,12 @@ void LoginDialog::onDemo() {
     tabs->setCurrentIndex(tab);
     if (tab == 0) {
         clientPhone->setText(button->property("demoLogin").toString());
+        onClientLogin();
     }
     else {
         staffLogin->setText(button->property("demoLogin").toString());
         staffPassword->setText(button->property("demoPassword").toString());
+        onStaffLogin();
     }
 }
 

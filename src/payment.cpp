@@ -26,11 +26,11 @@ Payment::Payment(int idValue, std::shared_ptr<Appointment> appointmentValue, dou
     : id(idValue), appointment(appointmentValue), amount(amountValue), discountPercent(discountValue),
     method(methodValue), paidAt(paidAtValue) {
     if (!appointment) throw NullObjectException("Payment", "appointment");
-    if (amount < 0) throw InvalidDataException("amount", "must not be negative");
+    if (amount < 0) throw InvalidDataException("сумма", "не может быть отрицательным");
     if (discountPercent < 0 || discountPercent > 100) {
-        throw InvalidDataException("discount", "must be between 0 and 100");
+        throw InvalidDataException("скидка", "от 0 до 100");
     }
-    if (idValue <= 0) throw InvalidDataException("payment id", "must be positive");
+    if (idValue <= 0) throw InvalidDataException("номер платежа", "должно быть положительным");
     if (counter <= idValue) counter = idValue + 1;
 }
 
@@ -52,14 +52,14 @@ void Payment::printInfo(std::ostream& os) const {
 
 std::ostream& operator<<(std::ostream& os, const Payment& payment) {
     const Appointment& visit = *payment.appointment;
-    os << "========== RECEIPT #" << payment.id << " ==========\n";
-    os << "Date:     " << payment.paidAt << "\n";
-    os << "Client:   " << visit.getClient()->getName() << "\n";
-    os << "Master:   " << visit.getMaster()->getName() << "\n";
-    os << "Service:  " << visit.getService()->getName() << "\n";
-    os << "Price:    " << formatMoney(visit.getPrice()) << "\n";
-    os << "Discount: " << payment.discountPercent << "%\n";
-    os << "TOTAL:    " << formatMoney(payment.amount) << " (" << paymentMethodToString(payment.method) << ")\n";
+    os << "========== ЧЕК №" << payment.id << " ==========\n";
+    os << "Дата:     " << payment.paidAt << "\n";
+    os << "Клиент:   " << visit.getClient()->getName() << "\n";
+    os << "Мастер:   " << visit.getMaster()->getName() << "\n";
+    os << "Услуга:   " << visit.getService()->getName() << "\n";
+    os << "Цена:     " << formatMoney(visit.getPrice()) << "\n";
+    os << "Скидка:   " << payment.discountPercent << "%\n";
+    os << "ИТОГО:    " << formatMoney(payment.amount) << " (" << (payment.method == PaymentMethod::Cash ? "наличные" : "карта") << ")\n";
     os << "==================================\n";
     return os;
 }

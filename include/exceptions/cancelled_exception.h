@@ -3,5 +3,5 @@
 
 class CancelledException : public BarbershopException {
 public:
-    CancelledException() : BarbershopException("The action was cancelled.") {}
+    CancelledException() : BarbershopException("Действие отменено.") {}
 };

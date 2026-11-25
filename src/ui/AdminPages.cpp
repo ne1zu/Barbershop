@@ -27,8 +27,10 @@ StaffPage::StaffPage(AppContext* contextValue, QWidget* parent) : PageBase(conte
     QPushButton* addMaster = makeButton(QString::fromUtf8("+ Мастер"), "primary");
     QPushButton* addAdmin = makeButton(QString::fromUtf8("+ Администратор"), "ghost");
     removeButton = makeButton(QString::fromUtf8("Удалить сотрудника"), "danger");
+    editButton = makeButton(QString::fromUtf8("Стаж и рейтинг мастера"), "ghost");
     buttons->addWidget(addMaster);
     buttons->addWidget(addAdmin);
+    buttons->addWidget(editButton);
     buttons->addStretch(1);
     buttons->addWidget(removeButton);
     root->addLayout(buttons);
@@ -42,6 +44,8 @@ StaffPage::StaffPage(AppContext* contextValue, QWidget* parent) : PageBase(conte
     connect(addMaster, &QPushButton::clicked, this, &StaffPage::onAddMaster);
     connect(addAdmin, &QPushButton::clicked, this, &StaffPage::onAddAdmin);
     connect(removeButton, &QPushButton::clicked, this, &StaffPage::onRemove);
+    connect(editButton, &QPushButton::clicked, this, &StaffPage::onEdit);
+    connect(table, &QTableWidget::cellDoubleClicked, this, &StaffPage::onEdit);
 }
 
 QString StaffPage::title() const { return QString::fromUtf8("Персонал"); }
@@ -72,8 +76,7 @@ void StaffPage::refresh() {
         table->setItem(row, 1, makeItem(qs(admin->getPhone())));
         table->setCellWidget(row, 2, makeBadgeCell(QString::fromUtf8("Администратор"), "role"));
         table->setItem(row, 3, makeItem(qs(admin->getLogin())));
-        QString posKind = (admin->getPosition() == "Owner") ? "top" : "standard";
-        table->setCellWidget(row, 4, makeBadgeCell(qs(admin->getPosition()), posKind));
+        table->setItem(row, 4, makeItem(qs(admin->getPosition())));
         table->setItem(row, 5, makeItem("—"));
         table->setItem(row, 6, makeItem("—"));
     }
@@ -81,7 +84,26 @@ void StaffPage::refresh() {
 }
 
 void StaffPage::onSelectionChanged() {
-    removeButton->setEnabled(table->currentRow() >= 0);
+    int row = table->currentRow();
+    removeButton->setEnabled(row >= 0);
+    editButton->setEnabled(row >= 0 && table->item(row, 0)->data(Qt::UserRole + 1).toInt() == 0);
+}
+
+void StaffPage::onEdit() {
+    int row = table->currentRow();
+    if (row < 0 || table->item(row, 0)->data(Qt::UserRole + 1).toInt() != 0) return;
+    int id = table->item(row, 0)->data(Qt::UserRole).toInt();
+    std::shared_ptr<Master> master = findMasterById(shop(), id);
+    if (!master) return;
+    MasterProfileDialog dialog(shop(), master, this);
+    if (dialog.exec() == QDialog::Accepted) {
+        emit dataChanged();
+        refresh();
+        for (int i = 0; i < table->rowCount(); ++i) {
+            if (table->item(i, 0)->data(Qt::UserRole).toInt() == id
+                && table->item(i, 0)->data(Qt::UserRole + 1).toInt() == 0) table->selectRow(i);
+        }
+    }
 }
 
 void StaffPage::onAddMaster() {
@@ -122,7 +144,7 @@ void StaffPage::onRemove() {
                 if (admin->getId() == id) victim = admin;
             }
             if (victim.get() == ctx()->admin().get()) {
-                throw InvalidOperationException("remove administrator", "you cannot remove yourself");
+                throw InvalidOperationException("удаление администратора", "нельзя удалить самого себя");
             }
             shop() -= victim;
         }
@@ -141,7 +163,9 @@ ServicesCatalogPage::ServicesCatalogPage(AppContext* contextValue, QWidget* pare
     QHBoxLayout* buttons = new QHBoxLayout;
     QPushButton* add = makeButton(QString::fromUtf8("+ Новая услуга"), "primary");
     removeButton = makeButton(QString::fromUtf8("Удалить услугу"), "danger");
+    editButton = makeButton(QString::fromUtf8("Изменить услугу"), "ghost");
     buttons->addWidget(add);
+    buttons->addWidget(editButton);
     buttons->addStretch(1);
     buttons->addWidget(removeButton);
     root->addLayout(buttons);
@@ -153,6 +177,8 @@ ServicesCatalogPage::ServicesCatalogPage(AppContext* contextValue, QWidget* pare
     connect(table, &QTableWidget::itemSelectionChanged, this, &ServicesCatalogPage::onSelectionChanged);
     connect(add, &QPushButton::clicked, this, &ServicesCatalogPage::onAdd);
     connect(removeButton, &QPushButton::clicked, this, &ServicesCatalogPage::onRemove);
+    connect(editButton, &QPushButton::clicked, this, &ServicesCatalogPage::onEdit);
+    connect(table, &QTableWidget::cellDoubleClicked, this, &ServicesCatalogPage::onEdit);
 }
 
 QString ServicesCatalogPage::title() const { return QString::fromUtf8("Каталог услуг"); }
@@ -179,6 +205,23 @@ void ServicesCatalogPage::refresh() {
 
 void ServicesCatalogPage::onSelectionChanged() {
     removeButton->setEnabled(table->currentRow() >= 0);
+    editButton->setEnabled(table->currentRow() >= 0);
+}
+
+void ServicesCatalogPage::onEdit() {
+    int row = table->currentRow();
+    if (row < 0) return;
+    int id = table->item(row, 0)->data(Qt::UserRole).toInt();
+    std::shared_ptr<Service> service = findServiceById(shop(), id);
+    if (!service) return;
+    ServiceDialog dialog(shop(), service, this);
+    if (dialog.exec() == QDialog::Accepted) {
+        emit dataChanged();
+        refresh();
+        for (int i = 0; i < table->rowCount(); ++i) {
+            if (table->item(i, 0)->data(Qt::UserRole).toInt() == id) table->selectRow(i);
+        }
+    }
 }
 
 void ServicesCatalogPage::onAdd() {
@@ -370,6 +413,11 @@ QString DataPage::title() const { return QString::fromUtf8("Данные и от
 void DataPage::refresh() {}
 
 void DataPage::onSave() {
+    if (!askConfirm(this, QString::fromUtf8("Сохранение состояния"),
+        QString::fromUtf8("Вы точно хотите сохранить состояние? Файл %1 будет перезаписан.").arg(STATE_FILE_NAME),
+        QString::fromUtf8("Да, сохранить"))) {
+        return;
+    }
     try {
         DataStorage(STATE_FILE_NAME).save(shop());
         shop().log("SAVE", "State saved to " + std::string(STATE_FILE_NAME));

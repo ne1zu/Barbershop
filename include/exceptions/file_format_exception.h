@@ -8,7 +8,7 @@ private:
 
 public:
     FileFormatException(int lineNumber, const std::string& message)
-        : BarbershopException("Wrong data in line " + std::to_string(lineNumber) + ": " + message),
+        : BarbershopException("Ошибка данных в строке " + std::to_string(lineNumber) + ": " + message),
         line(lineNumber) {}
 
     int getLine() const { return line; }

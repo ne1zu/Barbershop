@@ -49,8 +49,8 @@ std::string hashPassword(std::string_view password) {
 
 std::string makePasswordHash(std::string_view password) {
     if (static_cast<int>(password.size()) < MIN_PASSWORD_LENGTH) {
-        throw InvalidDataException("password", "must be at least " + std::to_string(MIN_PASSWORD_LENGTH)
-            + " characters");
+        throw InvalidDataException("пароль", "не короче " + std::to_string(MIN_PASSWORD_LENGTH)
+            + " символов");
     }
     return hashPassword(password);
 }

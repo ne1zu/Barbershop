@@ -18,21 +18,21 @@ bool MasterService::hasCustomPrice() const { return customPrice > 0; }
 bool MasterService::hasCustomDuration() const { return customDuration > 0; }
 
 void MasterService::setCustomPrice(double priceValue) {
-    if (priceValue < 0) throw InvalidDataException("price", "must not be negative (0 means the automatic price)");
+    if (priceValue < 0) throw InvalidDataException("цена", "не может быть отрицательной (0 — автоматическая цена)");
     double rounded = roundMoney(priceValue);
     if (priceValue > 0 && rounded <= 0) {
-        throw InvalidDataException("price", "must be at least 0.01 (or 0 for automatic price)");
+        throw InvalidDataException("цена", "не меньше 0,01 (или 0 для автоматической цены)");
     }
     customPrice = rounded;
 }
 
 void MasterService::setCustomDuration(int durationValue) {
     if (durationValue < 0 || durationValue > MAX_SERVICE_MINUTES) {
-        throw InvalidDataException("duration", "must be 0-" + std::to_string(MAX_SERVICE_MINUTES)
+        throw InvalidDataException("длительность", "от 0 до " + std::to_string(MAX_SERVICE_MINUTES)
             + " (0 means the standard duration)");
     }
     if (durationValue % GRID_STEP_MINUTES != 0) {
-        throw InvalidDataException("duration", "must be a multiple of " + std::to_string(GRID_STEP_MINUTES));
+        throw InvalidDataException("длительность", "кратна " + std::to_string(GRID_STEP_MINUTES) + " минутам");
     }
     customDuration = durationValue;
 }

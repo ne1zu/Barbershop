@@ -122,7 +122,18 @@ inline QString inputs() {
 QLineEdit, QComboBox, QDateEdit, QTimeEdit, QDateTimeEdit, QSpinBox, QDoubleSpinBox, QTextEdit, QPlainTextEdit { background: @INPUT; border: 1px solid @BORDER; border-radius: 8px; padding: 8px 10px; selection-background-color: @ACCENT; selection-color: @ACCENTDARK; min-height: 18px; }
 QLineEdit:focus, QComboBox:focus, QDateEdit:focus, QTimeEdit:focus, QDateTimeEdit:focus, QSpinBox:focus, QDoubleSpinBox:focus, QTextEdit:focus { border: 1px solid @ACCENT; }
 QLineEdit:disabled, QComboBox:disabled, QDateEdit:disabled, QTimeEdit:disabled, QSpinBox:disabled, QDoubleSpinBox:disabled { color: @DISABLED; background: @CARD; }
-QComboBox::drop-down, QDateEdit::drop-down, QDateTimeEdit::drop-down { subcontrol-origin: padding; subcontrol-position: center right; width: 26px; border: none; }
+
+QComboBox::drop-down, QDateEdit::drop-down, QDateTimeEdit::drop-down { subcontrol-origin: padding; subcontrol-position: center right; width: 28px; border: none; }
+
+QComboBox::down-arrow {
+    image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2IiBmaWxsPSJub25lIiBzdHJva2U9IiM4ZThlOTciIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj4KICA8cG9seWxpbmUgcG9pbnRzPSI0IDYgOCAxMCAxMiA2Ii8+Cjwvc3ZnPg==");
+    width: 14px; height: 14px; margin-right: 8px;
+}
+QDateEdit::down-arrow, QDateTimeEdit::down-arrow {
+    image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM4ZThlOTciIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj4KICA8cmVjdCB4PSIzIiB5PSI0IiB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHJ4PSIyIiByeT0iMiIvPgogIDxsaW5lIHgxPSIxNiIgeTE9IjIiIHgyPSIxNiIgeTI9IjYiLz4KICA8bGluZSB4MT0iOCIgeTE9IjIiIHgyPSI4IiB5Mj0iNiIvPgogIDxsaW5lIHgxPSIzIiB5MT0iMTAiIHgyPSIyMSIgeTI9IjEwIi8+Cjwvc3ZnPg==");
+    width: 14px; height: 14px; margin-right: 8px;
+}
+
 QComboBox QAbstractItemView { background: @CARD2; border: 1px solid @BORDER; selection-background-color: @SELECT; selection-color: @ACCENT; outline: 0; padding: 4px; }
 QAbstractSpinBox::up-button, QAbstractSpinBox::down-button { width: 18px; border: none; background: transparent; }
 

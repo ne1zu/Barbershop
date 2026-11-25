@@ -5,5 +5,5 @@
 class NullObjectException : public BarbershopException {
 public:
     NullObjectException(const std::string& where, const std::string& what)
-        : BarbershopException("Null object in '" + where + "': '" + what + "' is not set.") {}
+        : BarbershopException("Внутренняя ошибка в «" + where + "»: не задан объект «" + what + "».") {}
 };

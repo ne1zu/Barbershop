@@ -1,6 +1,7 @@
 #include "UiUtils.h"
 #include <algorithm>
 #include <QBoxLayout>
+#include <QFontMetrics>
 #include <QFrame>
 #include <QHeaderView>
 #include <QLabel>
@@ -166,8 +167,18 @@ void repolish(QWidget* widget) {
     widget->update();
 }
 
+namespace {
+    void fitBadge(QLabel* badge) {
+        QFont font = badge->font();
+        font.setBold(true);
+        font.setPixelSize(11);
+        badge->setMinimumWidth(QFontMetrics(font).horizontalAdvance(badge->text()) + 34);
+    }
+}
+
 void setBadge(QLabel* badge, const QString& text, const QString& kind) {
     badge->setText(text);
+    fitBadge(badge);
     badge->setProperty("kind", kind);
     repolish(badge);
 }
@@ -178,6 +189,7 @@ QLabel* makeBadge(const QString& text, const QString& kind) {
     badge->setProperty("kind", kind);
     badge->setAlignment(Qt::AlignCenter);
     badge->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Fixed);
+    fitBadge(badge);
     return badge;
 }
 
@@ -271,7 +283,7 @@ QTableWidget* makeTable(const QStringList& headers) {
     table->setWordWrap(false);
     table->setFocusPolicy(Qt::NoFocus);
     table->verticalHeader()->hide();
-    table->verticalHeader()->setDefaultSectionSize(44);
+    table->verticalHeader()->setDefaultSectionSize(48);
     table->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     table->horizontalHeader()->setHighlightSections(false);
     table->horizontalHeader()->setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter);
@@ -386,4 +398,19 @@ QIcon makeIcon(const QString& name) {
     icon.addPixmap(drawIcon(name, QColor("#e6c9a2")), QIcon::Normal, QIcon::On);
     icon.addPixmap(drawIcon(name, QColor("#e6c9a2")), QIcon::Active, QIcon::On);
     return icon;
+}
+
+void setActionEnabled(QPushButton* button, bool enabled, const QString& hint) {
+    button->setEnabled(enabled);
+    button->setToolTip(enabled ? QString() : hint);
+}
+
+QString timeRangeText(const Appointment& appointment) {
+    int start = appointment.getStart().minuteOfDay();
+    return formatClock(start) + QString::fromUtf8(" – ") + formatClock(start + appointment.getDuration());
+}
+
+void fixColumn(QTableWidget* table, int column, int width) {
+    table->horizontalHeader()->setSectionResizeMode(column, QHeaderView::Fixed);
+    table->setColumnWidth(column, width);
 }

@@ -5,5 +5,5 @@
 class InvalidStatusTransitionException : public BarbershopException {
 public:
     InvalidStatusTransitionException(const std::string& from, const std::string& to)
-        : BarbershopException("Cannot change the status from '" + from + "' to '" + to + "'.") {}
+        : BarbershopException("Нельзя сменить статус «" + from + "» на «" + to + "».") {}
 };

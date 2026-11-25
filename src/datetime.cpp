@@ -37,11 +37,11 @@ DateTime::DateTime() : year(MIN_YEAR), month(1), day(1), hour(0), minute(0) {}
 DateTime::DateTime(int yearValue, int monthValue, int dayValue, int hourValue, int minuteValue)
     : year(yearValue), month(monthValue), day(dayValue), hour(hourValue), minute(minuteValue) {
     if (!isValidDate(dayValue, monthValue, yearValue)) {
-        throw InvalidDataException("date", "there is no such date: " + std::to_string(dayValue) + "."
+        throw InvalidDataException("дата", "такой даты нет: " + std::to_string(dayValue) + "."
             + std::to_string(monthValue) + "." + std::to_string(yearValue));
     }
     if (!isValidTime(hourValue, minuteValue)) {
-        throw InvalidDataException("time", "hours must be 0-23 and minutes 0-59");
+        throw InvalidDataException("время", "часы 0–23, минуты 0–59");
     }
 }
 

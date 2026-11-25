@@ -41,14 +41,14 @@ MainWindow::MainWindow(AppContext* contextValue, QWidget* parent)
 
     QHBoxLayout* brand = new QHBoxLayout;
     brand->setSpacing(12);
-    QLabel* logo = makeLabel(QString::fromUtf8("✂"), "brandLogo");
+    QLabel* logo = makeLabel(QString::fromUtf8("ОЛ"), "brandLogo");
     logo->setFixedSize(40, 40);
     logo->setAlignment(Qt::AlignCenter);
     brand->addWidget(logo);
     QVBoxLayout* brandText = new QVBoxLayout;
     brandText->setSpacing(0);
-    brandText->addWidget(makeLabel("CIryulnya", "brandTitle"));
-    brandText->addWidget(makeLabel("Premium grooming", "brandSub"));
+    brandText->addWidget(makeLabel(QString::fromUtf8("ОСТРОЕ ЛЕЗВИЕ"), "brandTitle"));
+    brandText->addWidget(makeLabel(QString::fromUtf8("Премиальный груминг"), "brandSub"));
     brand->addLayout(brandText, 1);
     side->addLayout(brand);
     side->addSpacing(16);
@@ -76,6 +76,7 @@ MainWindow::MainWindow(AppContext* contextValue, QWidget* parent)
     userText->setSpacing(0);
     userName = makeLabel(QString(), "userName");
     userRole = makeLabel(QString(), "userRole");
+    userRole->setWordWrap(true);
     userText->addWidget(userName);
     userText->addWidget(userRole);
     userLayout->addLayout(userText, 1);
@@ -164,8 +165,8 @@ void MainWindow::buildPages() {
 
 void MainWindow::showPage(int index) {
     if (index < 0 || index >= static_cast<int>(pages.size())) return;
-    pages[index]->refresh();
     stack->setCurrentIndex(index);
+    pages[index]->refresh();
     titleLabel->setText(pages[index]->title());
 }
 

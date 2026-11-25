@@ -36,6 +36,7 @@ public:
     void ban(std::string_view reason);
     void unban();
     void addNote(std::string_view text);
+    void setVisitsCount(int visits);
     void registerVisit(double amount);
     void registerNoShow();
     void registerCancel();
